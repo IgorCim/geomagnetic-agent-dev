@@ -38,10 +38,33 @@
 
 Повтор локальных проверок из корня dev-копии с установленными зависимостями:
 
+Это **команды терминала**, а не Python-код ячейки:
+
 ```text
 python -B tools/verify_offline.py
 python -B tools/verify_gradio.py --port 17861
 ```
+
+В Python-ячейке Colab/Kaggle используй `subprocess`, указав каталог загруженного агента явно:
+
+```python
+from pathlib import Path
+import subprocess
+import sys
+import agent_core as ac
+
+qa_root = Path(ac.__file__).resolve().parent
+subprocess.run(
+    [sys.executable, '-B', str(qa_root / 'tools' / 'verify_offline.py')],
+    cwd=qa_root, check=True,
+)
+subprocess.run(
+    [sys.executable, '-B', str(qa_root / 'tools' / 'verify_gradio.py'), '--port', '17861'],
+    cwd=qa_root, check=True,
+)
+```
+
+Это дополнительные автономные и HTTP-проверки; они не запускают 12 научных запросов. Для этих запросов нужна отдельная ячейка ниже.
 
 Автономный набор выполняется в одноразовой копии; пользовательские результаты не используются как тестовые артефакты. При занятом порту HTTP-проверки выбери другой порт, не останавливая чужой сервер.
 
@@ -61,17 +84,40 @@ from pathlib import Path
 import runpy
 import agent_core as ac
 
-assert isinstance(brain, ac.LlamaBrain)
 qa_root = Path(ac.__file__).resolve().parent
+qa_script = qa_root / 'tools' / 'run_request_planner_review.py'
+print('Загруженный агент:', qa_root, flush=True)
+assert qa_script.is_file(), (
+    f'В этом checkout нет {qa_script.name}. '
+    'Нужен geomagnetic-agent-dev, ветка codex/semantic-request-planner. '
+    'Выполни настройку первой ячейки ниже; поверх загруженного brain файлы не обновляй.'
+)
+assert 'brain' in globals() and isinstance(brain, ac.LlamaBrain), 'Сначала загрузи brain из этой dev-ветки.'
+assert getattr(brain, 'supports_request_planning', False), (
+    'Загружена старая версия brain. Нужен перезапуск kernel и подготовка из dev-ветки.'
+)
 for name in ('demo', 'qa_download'):
     ui = globals().get(name)
     if ui is not None:
         ui.close()
-runner = runpy.run_path(str(qa_root / 'tools/run_request_planner_review.py'))
+runner = runpy.run_path(str(qa_script))
 qa_result = runner['run'](brain)
 print('Результаты:', qa_result['run_dir'], flush=True)
 print('ZIP доказательств:', qa_result['archive'], flush=True)
 ```
+
+### Если возник FileNotFoundError
+
+Сначала запусти исправленную ячейку выше: она собирает имя файла без обратного слеша перед `.py` и проверяет файл до закрытия Gradio. Если файл найден и `brain` поддерживает мини планировщик, перезапуск не нужен.
+
+Если проверка сообщает, что файла нет, загружен checkout без нового runner. Файл добавлен в dev-ветку коммитом `8c67cc0`; загрузка оригинального репозитория или `master` не выбирает эту ветку автоматически.
+
+1. Сохрани нужные выводы ноутбука. Перезапусти **kernel / сеанс Python**, сохраняя файлы рабочей среды; не удаляй результаты, checkout или веса.
+2. В первой установочной ячейке замени **оба** параметра: `REPO_URL` на `https://github.com/IgorCim/geomagnetic-agent-dev.git`, `BRANCH` на `codex/semantic-request-planner`.
+3. Выполни ячейку 1, затем прежние ячейки установки и загрузки `brain`. Не запускай старую первую ячейку следом: она снова выберет другой checkout.
+4. Запусти ячейку научной проверки выше.
+
+Не нужно отдельно скачивать только runner в старый каталог: проверяется новая связка мини планировщика и исполнителя, поэтому её модули должны происходить из одного checkout. Если в первой ячейке есть список `PROJECT_MODULES`, включи туда также `chat_session` и `request_planner` для защиты от смешивания версий при повторном запуске.
 
 Запускаются 12 исходных сообщений: десять различных запросов и два повторных запроса из пользовательской выгрузки. Формулировки не исправлены. Запросы сохранены в [каталоге](SCIENTIFIC_ADVISOR_CASES.json), прежние ответы — в [исторической выгрузке](../evidence/scientific_advisor_before.txt). Исторические ошибки в этом файле не являются новыми результатами.
 
