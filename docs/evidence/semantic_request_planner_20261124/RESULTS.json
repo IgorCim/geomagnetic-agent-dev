@@ -1,0 +1,43 @@
+{
+  "base_revision": "e47c03af2ca89220771248e8486f02d8060f74f5",
+  "scope": "Dev copy only. Offline infrastructure and deterministic real Gradio HTTP. Real Qwen 14B scientific acceptance is NOT_RUN.",
+  "before": {
+    "passed": 1213,
+    "skipped": 1,
+    "deselected": 23
+  },
+  "after": {
+    "passed": 1278,
+    "skipped": 1,
+    "deselected": 23
+  },
+  "new_tests": 65,
+  "skip_reason": "llama-cpp-python is not installed; one GPU-offload test skipped.",
+  "http_checks": 9,
+  "real_model_acceptance": "NOT_RUN",
+  "unchanged": {
+    "SYSTEM_PROMPT": true,
+    "TOOL_SCHEMAS": true,
+    "agent_planner.py": true,
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_plotter.py": true
+  },
+  "protected_original_unchanged": {
+    "agent_core.py": true,
+    "chat_session.py": true,
+    "physics_engine.py": true
+  },
+  "sha256": {
+    "agent_core.py": "7268b8d08cb88cf2eb494e9b0b258afec29fec10a3af3e26b23b6b2d7df8ea4f",
+    "chat_session.py": "8bf1099c0b418056a921d5fd57ba12c42c3f934f84efa4aa02bb5b399625e37f",
+    "gradio_app.py": "981fc01191038d8ea7204339f0ee6a0c0dbab13a032439a0da77b07c86efb8d9",
+    "request_planner.py": "4703557e99c0d0e94e6dd9e88895c918d1b9053bd60cfd1114b53178472a7f7b",
+    "test_request_planner.py": "35ceb8dae8f13d8fd47580bcf0915b9a8c777c3cca50b4c7425f039ac9390751",
+    "tools/run_chat_acceptance.py": "0da2ed4ae8049221f5a906e4e4eae2e3b12b6ed34289cb703ddd746d0a946856",
+    "tools/verify_offline.py": "2da155b701b9215a84f6e5b7d128e5a567b874d78d9b6a6058d3bfa208e413a1",
+    "tools/run_request_planner_review.py": "1461f2176423c9e9c497b76b548bbf237ea6512256490282a737c3c55ed720d9",
+    "docs/qa/SCIENTIFIC_ADVISOR_CASES.json": "f8ba7690b3ebd7f9cb3b50947bf3f47f87e4032f418564074eab779b994a3fd2",
+    "docs/evidence/scientific_advisor_before.txt": "98dd653a71515b595cccfddde24828e94cef9683e7f6897b88713aa192a42e3a"
+  }
+}

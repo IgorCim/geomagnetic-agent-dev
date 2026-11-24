@@ -28,7 +28,8 @@ def main() -> int:
     # The replay-runner tests read the same checked-in prompt documents as Kaggle.
     files += [root / name for name in [
         'tools/run_chat_acceptance.py', 'tools/kaggle_chat_acceptance.py', 'docs/LONG_CHAT.md',
-        'tools/run_full_evidence.py',
+        'tools/run_full_evidence.py', 'tools/run_request_planner_review.py',
+        'docs/qa/SCIENTIFIC_ADVISOR_CASES.json', 'docs/evidence/scientific_advisor_before.txt',
         'tools/run_prompt_diagnostics.py', 'tools/kaggle_prompt_diagnostics.py',
         'tools/kaggle_prompt_diagnostics_remaining.py',
         'tools/run_focused_review.py', 'tools/kaggle_focused_review.py',

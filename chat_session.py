@@ -17,7 +17,7 @@ HANDLE = re.compile(r"\b(?:raw|derived|anomalies|anomaly|math|formula|sw|idx):[a
 DATES = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 FRAME_ARGS = {"df_descriptor", "df1", "df2", "ground_df_descriptor", "solar_wind_df_descriptor", "solar_wind_handle"}
 FETCH = {"fetch_observatory_data", "fetch_solar_wind", "fetch_geomagnetic_indices", "fetch_supermag_data"}
-EXCLUDE_CODES = {"OMNI", "NOAA", "ISWA", "DST", "IAGA", "HTML", "GSM", "UTC", "ZIP", "APIX"}
+EXCLUDE_CODES = {"OMNI", "NOAA", "ISWA", "DST", "IAGA", "HTML", "GSM", "UTC", "ZIP", "APIX", "GIC", "SSC", "SML", "SME", "SMU", "MLT", "GSE"}
 CALCULATION_TOOLS = {"calculate_derived_components", "calculate_baseline", "calculate_derived_math",
                      "evaluate_custom_formula", "apply_physics_formula", "detect_anomalies"}
 
@@ -37,6 +37,8 @@ def capture_calculation(entry: dict, name: str, payload: Any) -> None:
 def station_in(question: str) -> str | None:
     handles = HANDLE.findall(question)
     ground = [h.split(":")[1] for h in handles if h.lower().startswith(("raw:", "derived:"))]
+    from request_planner import unquoted
+    question = unquoted(question)
     prefixed = re.findall(r"\b(?:станц\w*|обсерватор\w*|station|загрузи|загрузить)\s+([a-z]{3,4})\b", question, re.I)
     codes = ground or [c.lower() for c in re.findall(r"\b[A-Z]{3,4}\b", question) + prefixed if c.upper() not in EXCLUDE_CODES]
     return codes[0] if len(set(codes)) == 1 else None
@@ -94,7 +96,33 @@ class Request:
     produced_handles: set[str] = field(default_factory=set)
     no_source_substitution: bool = False
 
+    intent: dict | None = None
+
+    def apply_intent(self, intent: dict) -> None:
+        """Apply a validated semantic decision; keep explicit prohibitions/handles."""
+        self.intent = intent
+        self.station = intent['stations'][0] if len(intent['stations']) == 1 else None
+        self.date = self.fetch_date = intent['dates'][0] if len(intent['dates']) == 1 else None
+        if intent['mode'] in ('explain', 'plan', 'clarify'):
+            self.wants_stats = self.wants_plot = self.wants_derived = self.wants_local_time = False
+            self.calculation_tools = self.required_operations = ()
+            self.target = None
+            self.requested_metric = self.requested_formula = None
+            self.routine = False
+        else:
+            selected = set(intent['tools'])
+            self.wants_plot = bool(selected & {'plot_components','plot_comparison','plot_overlay','plot_space_weather_comparison'})
+            self.wants_stats = 'get_statistics' in selected
+            self.wants_local_time = 'calculate_local_time' in selected
+            self.required_operations = tuple(intent['tools'])
+            self.calculation_tools = tuple(t for t in intent['tools'] if t in CALCULATION_TOOLS)
+            self.wants_derived = self.wants_derived and 'calculate_derived_components' in selected
+            if intent['mode'] == 'analyze':self.routine = False
+            if len(intent['dates']) > 1:self.target = None
+        if intent['mode'] == 'clarify':self.clarification = intent['question']
+
     def should_use_facts(self, log: list[dict]) -> bool:
+        if self.intent and self.intent['mode'] in ('analyze','explain','plan'):return False
         if self.routine or self.calculation_tools or self.required_operations:
             return True
         interpretation = re.search(r"проанализ|объясн|интерпрет|почему|\b(?:interpret|explain|analy[sz])", self.query, re.I)
@@ -140,6 +168,37 @@ class Request:
         return None
 
     def check_call(self, name: str, args: dict, store: Any) -> str | None:
+        if self.intent:
+            if self.intent['mode'] in ('explain','plan','clarify'):
+                return 'Текущий запрос требует только объяснения/плана без исполнения инструментов.'
+            if name == 'apply_physics_formula' and self.intent['metrics'] and args.get('metric') not in self.intent['metrics']:
+                return 'Используй физическую метрику текущего плана; не подменяй её другой.'
+            days = set(self.intent['dates'])
+            stations = set(self.intent['stations'])
+            if name in FETCH and days:
+                start = str(args.get('start_date',''))[:10]
+                end = str(args.get('end_date', start))[:10]
+                if self.intent['date_scope'] == 'days':
+                    if start not in days or end != start:
+                        return 'Для отдельных дат получи отдельные суточные таблицы, не общий период.'
+                elif start < min(days) or end > max(days):
+                    return 'Запрошен другой временной период.'
+            if name == 'fetch_observatory_data' and stations and str(args.get('station_code','')).lower() not in stations:
+                return 'Станция не относится к текущему запросу.'
+            for key in FRAME_ARGS:
+                handle = args.get(key)
+                frame = store.get(handle) if isinstance(handle,str) else None
+                if frame is None:continue
+                canonical = store.aliases().get(str(handle).lower(), str(handle).lower())
+                if stations and canonical.startswith(('raw:','derived:','math:','anomaly:','anomalies:','formula:')) and canonical.split(':')[1] not in stations:
+                    return 'Таблица другой станции не относится к текущему запросу.'
+                if 'timestamp' in frame and days:
+                    import pandas as pd
+                    actual = set(pd.to_datetime(frame['timestamp'],utc=True,errors='coerce').dropna().dt.strftime('%Y-%m-%d'))
+                    if self.intent['date_scope'] == 'days' and (len(actual) != 1 or not actual <= days):
+                        return 'date_scope_mismatch: нужна одна из запрошенных суточных таблиц; проверь фактическое покрытие и число строк.'
+                    if self.intent['date_scope'] == 'range' and any(d < min(days) or d > max(days) for d in actual):
+                        return 'date_scope_mismatch: фактическое покрытие выходит за запрошенный период.'
         if name == 'plot_overlay' and len(set(re.findall(r'\b[XYZHDIF]\b', self.query))) > 1:
             return ('plot_overlay сравнивает одну компоненту разных станций. '
                     'Для нескольких компонентов одной таблицы используй plot_components: '
@@ -219,7 +278,7 @@ class Request:
                     or any(not isinstance(c, str) or c.strip().casefold() not in expected for c in actual)):
                 return (f"Для текущей статистики нужны components={list(self.components)!r}. "
                         f"Передано components={actual!r}. Используй запрошенные компоненты, а не компоненты прошлых реплик.")
-        if self.no_fetch and name in FETCH:
+        if self.no_fetch and name in FETCH | {'fetch_many'}:
             return "Запрошено использование прежних данных без повторной загрузки."
         if self.no_source_substitution and self.handle and name in FETCH:
             source = self.handle.split(':')[1]
@@ -402,13 +461,16 @@ class SessionMemory:
                              and bool(re.search(r"использован|разговор|диалог|контекст|подтверд", q)))
         return assets and (summary or enumerate_session)
 
-    def prepare(self, question: str, store: Any) -> Request:
+    def prepare(self, question: str, store: Any, intent: dict | None = None) -> Request:
         q = question.lower()
         request = Request(question)
         placeholders = list(dict.fromkeys(re.findall(r"\{[A-Z][A-Z0-9_]*\}", question)))
         if placeholders:
             request.clarification = ("В запросе остались незаполненные поля: " + ", ".join(placeholders)
                                      + ". Укажите реальные имена, handle или параметры. Данные и станции по догадке не выбираю; инструменты не вызывались.")
+            return request
+        if intent and intent.get('status') == 'ok' and intent['mode'] in ('explain','plan','clarify'):
+            request.apply_intent(intent)
             return request
         explicit = list(dict.fromkeys(h.lower() for h in HANDLE.findall(question)))
         days = list(dict.fromkeys(DATES.findall(question)))
@@ -464,7 +526,7 @@ class SessionMemory:
                 request.clarification = "Укажите существующую дату YYYY-MM-DD."
                 return request
         request.station = request.station or station
-        request.no_fetch = bool(re.search(r"не\s+скачивай|без\s+(?:(?:новой|повторной)\s+)?(?:загруз|скачивания)|no\s+refetch", q))
+        request.no_fetch = bool(re.search(r"не\s+(?:скачивай|загружай|скачивать|загружать)|без\s+(?:(?:новой|повторной)\s+)?(?:загруз|скачивания)|no\s+refetch", q))
         request.no_source_substitution = bool(re.search(r'не\s+(?:подменяй|меняй)\s+источник', q))
         outlier_text = re.sub(r'(?:а\s+)?не\s+поиск\s+выбросов|не\s+ищи\s+выбросы', '', q)
         outliers = bool(re.search(r'выброс|detect_anomalies|sigma_threshold|\boutliers?\b', outlier_text))

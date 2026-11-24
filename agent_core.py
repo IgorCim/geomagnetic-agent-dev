@@ -2634,6 +2634,30 @@ def _compact_tool_message(payload: Any, max_chars: int = FRAME_SUMMARY_MAX_CHARS
     sending it whole, so such a payload is kept intact up to
     :data:`FALLBACK_HINT_MAX_CHARS` -- still a hard cap, just a roomier one.
     """
+    if isinstance(payload, dict) and payload.get('input_provenance'):
+        data = {k:v for k,v in payload.items() if k != 'input_provenance'}
+        statistics = {k:v for k,v in data.items() if isinstance(v,dict) and 'median' in v and 'count' in v}
+        if statistics:
+            result = {'input_provenance':payload['input_provenance'], 'statistics':statistics}
+            if len(_dumps(result)) <= 1600:return _dumps(result)
+            # Keep identity and disclose reduced statistics, never silently lose a source.
+            result['statistics'] = {k:{n:v[n] for n in ('min','max','mean','count','missing') if n in v} for k,v in statistics.items()}
+            omitted = 0
+            while len(_dumps(result)) > 1600 and result['statistics']:
+                result['statistics'].pop(next(reversed(result['statistics'])))
+                omitted += 1
+                result['omitted_components'] = omitted
+            if len(_dumps(result)) > 1600:
+                return _dumps({'error':'provenance_context_budget','input_count':len(payload['input_provenance']),
+                               'message':'Inspect the saved tool log. No numeric summary supplied.'})
+            return _dumps(result)
+        result = {'input_provenance':payload['input_provenance'], 'result':_compact_tool_message(data,max_chars)}
+        if len(_dumps(result)) > 1600:
+            result['result'] = 'Detailed output omitted for context budget; inspect the saved tool log.'
+        if len(_dumps(result)) > 1600:
+            result = {'error':'provenance_context_budget', 'input_count':len(payload['input_provenance']),
+                      'message':'Input identities exceed context budget; inspect the saved tool log. No numeric summary supplied.'}
+        return _dumps(result)
     text = _dumps(payload)
     if isinstance(payload, dict) and payload.get("fallback_hint"):
         limit = max(max_chars, FALLBACK_HINT_MAX_CHARS)
@@ -2887,6 +2911,8 @@ def shutil_copyfileobj(src, dst, length: int = 1 << 20) -> None:
 # --------------------------------------------------------------------------- #
 class LlamaBrain:
     """Adapter around ``llama_cpp.Llama`` exposing a single ``chat`` method."""
+
+    supports_request_planning = True
 
     def __init__(
         self,
@@ -7712,6 +7738,31 @@ def code_revision() -> str:
         return "unknown"
 
 
+def frame_provenance(store: FrameStore, handle: str) -> dict[str, Any] | None:
+    frame = store.get(handle)
+    if frame is None:return None
+    canonical = store.aliases().get(handle.lower(), handle.lower())
+    result = {"handle": canonical, "rows": len(frame)}
+    if "timestamp" in frame:
+        dates = pd.to_datetime(frame["timestamp"], errors="coerce", utc=True).dropna()
+        if len(dates):result.update(start=dates.min().isoformat(), end=dates.max().isoformat())
+    return result
+
+
+def understand_request(query: str, brain: Any, store: FrameStore, verbose: bool = False) -> dict | None:
+    """Separate plan_request tool; bulk execution continues to use its own planner."""
+    import request_planner as rp
+    if not rp.enabled(brain):return None
+    context = store.conversation.context()
+    for handle in store.names()[-6:]:
+        context += "\n" + _dumps(frame_provenance(store, handle))
+    aliases = dict(re.findall(r'([A-Z]{3})=([^,]+)', STATION_HINT))
+    decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases)
+    if verbose:
+        print('[REQUEST PLANNER] ' + _dumps(decision))
+    return decision
+
+
 def run_agent(
     user_query: str,
     brain: Any = None,
@@ -7723,6 +7774,7 @@ def run_agent(
     store: FrameStore | None = None,
     routing_query: str | None = None,
     contract: Any = None,
+    intent_plan: dict | None = None,
 ) -> dict[str, Any]:
     """Answer ``user_query`` by letting the model call the Stage 1/2 tools.
 
@@ -7763,6 +7815,27 @@ def run_agent(
     if verbose:
         print(f"[CODE] revision={code_revision()} module={Path(__file__).resolve()}")
 
+    store = store or FrameStore()
+    current_query = routing_query if routing_query is not None else user_query
+    if tools is None:
+        if intent_plan is None:intent_plan = understand_request(current_query, brain, store, verbose)
+        if intent_plan and intent_plan.get('status') == 'ok':
+            if contract is None:contract = store.conversation.prepare(current_query, store, intent_plan)
+            if not contract.clarification:contract.apply_intent(intent_plan)
+            if contract.clarification:
+                return {'ok':False,'text':contract.clarification,'plots':[],'tool_calls':[],
+                        'request_plan':intent_plan,'stop_reason':'clarification'}
+            if intent_plan['mode'] == 'clarify':
+                return {'ok':False,'text':intent_plan['question'],'plots':[],'tool_calls':[],
+                        'request_plan':intent_plan,'stop_reason':'clarification'}
+            from request_planner import expand_tools
+            selected = expand_tools(intent_plan, any(h.startswith(('raw:', 'derived:')) for h in store.names()))
+            schema_map = {schema['function']['name']:schema for schema in TOOL_SCHEMAS}
+            tools = [schema_map[name] for name in selected if name in schema_map]
+            user_query += "\nТекущая задача (проверенный план): " + _dumps({k:intent_plan[k] for k in ('mode','tools','metrics','stations','dates','date_scope')})
+            if intent_plan['mode'] in ('analyze','explain'):
+                user_query += "\nОбъясни результаты; числа связывай с input_provenance, датами и количеством строк."
+
     prompt = system_prompt if system_prompt is not None else SYSTEM_PROMPT
     # Never hand a small model all 29 schemas: a free-form question gets the
     # tools its intent needs. Planner subtasks pass an explicit, already narrow
@@ -7772,7 +7845,10 @@ def run_agent(
     # many tokens the schemas cost).
     if tools is not None:
         schemas = tools
-        selection = None
+        selection = ({'tools':[x['function']['name'] for x in tools], 'metrics':intent_plan['metrics'],
+                       'bulk':False,'est_tokens':prompt_budget(prompt, tools)['est_tokens'],
+                       'space_comparison':'plot_space_weather_comparison' in intent_plan['tools']}
+                     if intent_plan and intent_plan.get('status')=='ok' else None)
     else:
         current_query = routing_query if routing_query is not None else user_query
         schemas = select_tools_for_query(current_query)
@@ -7985,6 +8061,7 @@ def run_agent(
                 "tool_calls": log,
                 "rounds": round_no,
                 "stop_reason": stop_reason,
+                "request_plan": intent_plan,
             }
 
         if spent + len(calls) > max_tool_calls:
@@ -8143,6 +8220,17 @@ def run_agent(
                     note = f"{name} raised {type(exc).__name__}"
 
             entry["ok"] = not is_error(payload)
+            if entry['ok']:
+                identities = []
+                for key in ('df_descriptor','df','df1','df2','ground_df_descriptor','solar_wind_df_descriptor','solar_wind_handle','reference_handle'):
+                    handle = args.get(key)
+                    item = frame_provenance(store,handle) if isinstance(handle,str) else None
+                    if item and item not in identities:identities.append(item)
+                if identities:
+                    entry['input_provenance'] = identities
+                    if isinstance(payload,dict):payload = {**payload,'input_provenance':identities}
+                    if note and name in ('get_statistics','calculate_baseline','calculate_derived_math'):
+                        note = _dumps(identities) + ': ' + note
             entry.setdefault("executed", True)
             if entry["ok"]:
                 from chat_session import capture_calculation

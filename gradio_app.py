@@ -723,13 +723,17 @@ def make_chat_handler(brain: Any):
             )
 
         try:
-            if store.conversation.summary_requested(question):
+            intent_plan = core.understand_request(question, brain, store, VERBOSE)
+            if store.conversation.summary_requested(question) and not (intent_plan and intent_plan.get('status') == 'ok'):
                 return answer_with(store.conversation.summary(store, saved))
-            plan = store.conversation.prepare(question, store)
+            plan = store.conversation.prepare(question, store, intent_plan)
             if plan.clarification:
                 return answer_with(plan.clarification, "Проверка запроса до вызова модели: " + plan.clarification)
+            if intent_plan and intent_plan.get('status') == 'ok':
+                plan.apply_intent(intent_plan)
+                if plan.clarification:return answer_with(plan.clarification)
             question_with_context = _context_from_history(messages, store) + plan.query
-            if core.is_bulk_query(question):
+            if core.is_bulk_query(question) and not (intent_plan and intent_plan.get('status') == 'ok' and intent_plan['mode'] in ('explain','plan','clarify')):
                 # A matrix-scale request is the planner's job. Sending it to
                 # the single-question loop is what made a 260-cell request
                 # exhaust the tool budget halfway through.
@@ -749,6 +753,7 @@ def make_chat_handler(brain: Any):
                         verbose=VERBOSE,
                         routing_query=plan.query,
                         contract=plan,
+                        intent_plan=intent_plan,
                     )
             if isinstance(result, dict):
                 store.conversation.record(result.get("tool_calls") or [], store)
