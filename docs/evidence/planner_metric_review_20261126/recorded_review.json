@@ -1,7 +1,6 @@
 {
   "scope": "Review of recorded live v2 decisions, not a new model run or scientific acceptance.",
   "recorded_source": "docs/evidence/request_planner_probe_v2_20261126.txt",
-  "recorded_sha256": "35b0726fb261f6d15e0fadb0a9f16c9b51f4b6f117d8c4bbe060b65398571438",
   "protocol_accepted": 3,
   "routing_passed": 2,
   "cases": [
@@ -80,5 +79,8 @@
     }
   ],
   "scientific_answers": "NOT_GENERATED",
-  "updated_live_model": "NOT_RUN"
+  "updated_live_model": "NOT_RUN",
+  "attachment_sha256_bytes": "35b0726fb261f6d15e0fadb0a9f16c9b51f4b6f117d8c4bbe060b65398571438",
+  "recorded_sha256_normalized_utf8": "667f14e977a5f39461e392c34e9c28cec19956f4a0e147755e9cf7d2c4a0e3fb",
+  "line_endings": "Git stores LF; original attachment byte hash retained separately."
 }
