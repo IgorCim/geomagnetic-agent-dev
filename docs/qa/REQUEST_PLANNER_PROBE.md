@@ -1,5 +1,7 @@
 # Диагностика отклонения мини плана
 
+После установления причины подготовлено [исправление и отдельная проверка нового компонента](STRUCTURED_PLANNER_FIX.md). Эта страница описывает наблюдение за установленной версией; для проверки исправления на старом `brain` используй именно предпросмотр нового компонента.
+
 Первый живой прогон `113a719` обработал 12 сообщений, но во всех случаях мини план был отклонён с `invalid_plan:ValueError`. В журнале нет исходного ответа планировщика и конкретного нарушенного правила. Поэтому формат ответа, обрезку по лимиту и семантическую валидацию пока нельзя различить. [Исходный журнал](../evidence/semantic_request_planner_live_20261125.txt), [оценка](../evidence/semantic_request_planner_live_20261125.json).
 
 `tools/probe_request_planner.py` выполняет три исходных запроса: план исследования, два опорных уровня, критика научного абзаца. Для каждого создаётся пустая сессия, а модель вызывается ровно через существующие `understand_request` и `LlamaBrain.chat`. Декоратор передаёт параметры в тот же загруженный backend без изменений, сохраняет запрос, полный ответ backend, `finish_reason`, `usage`, результат разбора и точное сообщение валидации. Правила валидации не ослабляются, ответ модели не исправляется диагностикой.
@@ -27,10 +29,10 @@ import hashlib
 from urllib.request import urlopen
 
 assert 'brain' in globals(), 'Сначала загрузи brain обычной ячейкой загрузки модели.'
-probe_url = 'https://raw.githubusercontent.com/IgorCim/geomagnetic-agent-dev/3138ef07abaabf21bac7b5ab3ec7ce10c2c0c107/tools/probe_request_planner.py'
+probe_url = 'https://raw.githubusercontent.com/IgorCim/geomagnetic-agent-dev/25723cb79cdc0279886b3889f51bdbd7b3d9b1c1/tools/probe_request_planner.py'
 with urlopen(probe_url, timeout=30) as response:
     probe_code = response.read()
-assert hashlib.sha256(probe_code).hexdigest() == '2f006dcf0b08ae460fa41e79445e894ababadd60ad1bf5c0c51dc9c3b4b13a11', 'SHA256 диагностики не совпал.'
+assert hashlib.sha256(probe_code).hexdigest() == '2c81ffbd24e8cdbdd9ea911f9a634178a9960082ceebe1bab601ee68d44ff7cb', 'SHA256 диагностики не совпал.'
 
 probe_ns = {'__name__': 'request_planner_probe', '__file__': probe_url}
 exec(compile(probe_code, probe_url, 'exec'), probe_ns)

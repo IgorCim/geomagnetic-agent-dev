@@ -526,20 +526,21 @@ def test_the_budget_is_shared_and_what_it_refuses_is_listed(root):
     assert all(r["reason"] for r in payload["refused"])
 
 
-def test_a_station_that_fails_does_not_sink_the_others(root, monkeypatch):
+def test_a_station_that_fails_does_not_sink_the_others(root, monkeypatch, frame):
     """The normal case: one observatory has not published, the rest still arrive.
 
     Needs OFFLINE off, because offline mode synthesises data and never calls the
     loader -- which would make the flaky station impossible to simulate.
     """
     monkeypatch.setattr(ac, "OFFLINE", False)
-    real = ac.loader.fetch_observatory_data
-
     def flaky(station_code=None, **kwargs):
         if str(station_code).upper() == "BOU":
             return {"ok": False, "error": "no_data",
                     "message": f"{station_code} has nothing for that day"}
-        return real(station_code=station_code, **kwargs)
+        selected = frame.copy()
+        selected['timestamp'] += pd.Timestamp(kwargs['start_date']) - pd.Timestamp('2024-09-10')
+        selected.attrs['source'] = 'TEST FIXTURE: partial batch'
+        return selected
 
     monkeypatch.setattr(ac.loader, "fetch_observatory_data", flaky)
     store = _store(root)

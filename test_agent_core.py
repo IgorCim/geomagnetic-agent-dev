@@ -4635,7 +4635,14 @@ def test_calculate_eej_index_is_registered_and_advertised():
     assert "electrojet" in schema["function"]["description"].lower()
 
 
-def test_calculate_eej_index_offline_returns_a_derived_frame():
+def test_calculate_eej_index_offline_returns_a_derived_frame(monkeypatch):
+    # This verifies handler integration with controlled inputs, not live access.
+    def fixture_fetch(*args, **kwargs):
+        frame = pd.DataFrame({'timestamp':pd.date_range('2024-09-10',periods=24,freq='h'),
+                              'X':[3.0]*24,'Y':[4.0]*24,'Z':[12.0]*24})
+        frame.attrs['source'] = 'TEST FIXTURE: constant field'
+        return frame
+    monkeypatch.setattr(ac.loader,'fetch_observatory_data',fixture_fetch)
     store = ac.FrameStore()
     payload, note = ac.HANDLERS["calculate_eej_index"](
         {

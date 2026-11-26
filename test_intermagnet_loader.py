@@ -171,6 +171,7 @@ def test_bad_data_type_error():
     assert im.is_error(out) and out["error"] == "invalid_input"
 
 
+@pytest.mark.network
 def test_pre_network_date_is_no_data():
     out = im.fetch_observatory_data("IRT", "1990-01-01", "1990-01-02", use_cache=False)
     assert im.is_error(out) and out["error"] == "no_data"
@@ -182,7 +183,7 @@ def test_pre_network_date_is_no_data():
 # --------------------------------------------------------------------------- #
 @pytest.mark.network
 def test_station_catalogue_shape():
-    stations = im.get_available_stations()
+    stations = im.get_available_stations(refresh=True)
     assert len(stations) > 150
     assert "IRT" in stations
     name, lat, lon = stations["IRT"]

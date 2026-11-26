@@ -96,7 +96,8 @@ def test_adapter_forwards_every_parameter_and_reuses_backend():
     assert reply['tool_calls'][0]['function']['name']=='plan_request'
 
 
-def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeypatch):
+@pytest.mark.parametrize('preview',[False,True])
+def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeypatch,preview):
     import shutil
     repo=tmp_path/'fixture_repo';(repo/'tools').mkdir(parents=True)
     for name in ['agent_core.py','request_planner.py','chat_session.py','gradio_app.py']:
@@ -124,7 +125,16 @@ def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeyp
             response['model']='fixture-private-logon'
             return response
     backend=Backend();brain=ac.LlamaBrain(backend)
-    result=P['_run'](brain,scope='TEST_FIXTURE: scripted backend, not live Qwen')
+    if preview:
+        from types import SimpleNamespace
+        import sys
+        installed = sys.modules['request_planner']
+        component = SimpleNamespace(**runpy.run_path(str(ROOT/'request_planner.py')))
+        monkeypatch.setattr(ac,'understand_request',lambda *a,**k:pytest.fail('Installed router used by preview'))
+        result=P['_run'](brain,scope='TEST_FIXTURE: isolated new component; scripted backend',planner=component)
+        assert sys.modules['request_planner'] is installed
+    else:
+        result=P['_run'](brain,scope='TEST_FIXTURE: scripted backend, not live Qwen')
     assert backend.calls==3 and brain._llm is backend
     report=json.loads((Path(result['run_dir'])/'report.json').read_text(encoding='utf-8'))
     assert report['status']=='RECORDED' and report['scope'].startswith('TEST_FIXTURE')

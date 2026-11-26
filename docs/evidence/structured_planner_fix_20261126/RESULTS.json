@@ -1,7 +1,7 @@
 {
   "scope": "Offline regression and real HTTP with fixtures; live new Qwen routing and scientific answers are NOT_RUN locally.",
-  "passed": 1323,
-  "deselected": 23,
+  "passed": 1325,
+  "deselected": 24,
   "new_structured_tests": 28,
   "http_checks": 9,
   "original_unchanged": {
@@ -19,5 +19,9 @@
     "agent_planner.py": true
   },
   "recorded_failures_fixture": "tests/fixtures/request_planner_v1_replies.json",
-  "scientific_acceptance": "NOT_RUN_AFTER_FIX"
+  "scientific_acceptance": "NOT_RUN_AFTER_FIX",
+  "offline_network_guard": true,
+  "catalogue_dependency": "Recorded catalogue replay only in disposable tests; live refresh remains separate.",
+  "live_catalogue_status": "TLS errors observed in the local test environment; not marked PASS.",
+  "preview_compatibility": "Tested with an isolated component; installed request_planner module not replaced."
 }

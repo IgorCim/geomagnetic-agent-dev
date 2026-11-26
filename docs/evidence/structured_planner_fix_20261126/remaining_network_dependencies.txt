@@ -1,0 +1,223 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+........................................................................ [ 16%]
+........................................................................ [ 21%]
+F....................................................................... [ 27%]
+........................................................................ [ 32%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+..................................F..................................... [ 48%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+.........F.............................................................. [ 65%]
+........................................................................ [ 70%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 86%]
+........................................................................ [ 92%]
+........................................................................ [ 97%]
+..............................                                           [100%]
+================================== FAILURES ===================================
+__________ test_calculate_eej_index_offline_returns_a_derived_frame ___________
+
+    def test_calculate_eej_index_offline_returns_a_derived_frame():
+        store = ac.FrameStore()
+>       payload, note = ac.HANDLERS["calculate_eej_index"](
+            {
+                "equatorial_station": "IRT",
+                "reference_station": "ABG",
+                "start_date": "2024-09-10",
+            },
+            store,
+        )
+
+test_agent_core.py:4640: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+agent_core.py:7138: in _handle_calculate_eej_index
+    eq_frame, eq_err = _fetch(equator)
+                       ^^^^^^^^^^^^^^^
+agent_core.py:7127: in _fetch
+    fetched = loader.fetch_observatory_data(
+intermagnet_loader.py:868: in fetch_observatory_data
+    df, infos, attempts = _fetch_chunk(
+intermagnet_loader.py:628: in _fetch_chunk
+    df, info = fetcher(code, start, end, state, samples_per_day)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+intermagnet_loader.py:577: in _fetch_kyoto
+    resp = _request(
+intermagnet_loader.py:152: in _request
+    resp = _http().request(method, url, params=params, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:651: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:784: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\adapters.py:696: in send
+    resp = conn.urlopen(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:464: in _make_request
+    self._validate_conn(conn)
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:1106: in _validate_conn
+    conn.connect()
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:759: in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:204: in _new_conn
+    sock = connection.create_connection(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\util\connection.py:60: in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+host = 'wdc.kugi.kyoto-u.ac.jp'
+args = (443, <AddressFamily.AF_UNSPEC: 0>, <SocketKind.SOCK_STREAM: 1>)
+kwargs = {}
+
+    def _resolve(host, *args, **kwargs):
+        if not _local(host):
+>           raise RuntimeError('Offline pytest blocked external DNS: '+str(host))
+E           RuntimeError: Offline pytest blocked external DNS: wdc.kugi.kyoto-u.ac.jp
+
+offline_test_guard.py:23: RuntimeError
+______________________ test_pre_network_date_is_no_data _______________________
+
+    def test_pre_network_date_is_no_data():
+>       out = im.fetch_observatory_data("IRT", "1990-01-01", "1990-01-02", use_cache=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_intermagnet_loader.py:175: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+intermagnet_loader.py:868: in fetch_observatory_data
+    df, infos, attempts = _fetch_chunk(
+intermagnet_loader.py:628: in _fetch_chunk
+    df, info = fetcher(code, start, end, state, samples_per_day)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+intermagnet_loader.py:577: in _fetch_kyoto
+    resp = _request(
+intermagnet_loader.py:152: in _request
+    resp = _http().request(method, url, params=params, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:651: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:784: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\adapters.py:696: in send
+    resp = conn.urlopen(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:464: in _make_request
+    self._validate_conn(conn)
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:1106: in _validate_conn
+    conn.connect()
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:759: in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:204: in _new_conn
+    sock = connection.create_connection(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\util\connection.py:60: in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+host = 'wdc.kugi.kyoto-u.ac.jp'
+args = (443, <AddressFamily.AF_UNSPEC: 0>, <SocketKind.SOCK_STREAM: 1>)
+kwargs = {}
+
+    def _resolve(host, *args, **kwargs):
+        if not _local(host):
+>           raise RuntimeError('Offline pytest blocked external DNS: '+str(host))
+E           RuntimeError: Offline pytest blocked external DNS: wdc.kugi.kyoto-u.ac.jp
+
+offline_test_guard.py:23: RuntimeError
+_____________ test_a_station_that_fails_does_not_sink_the_others ______________
+
+root = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-1014/test_a_station_that_fails_does0/projects')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000022367C563C0>
+
+    def test_a_station_that_fails_does_not_sink_the_others(root, monkeypatch):
+        """The normal case: one observatory has not published, the rest still arrive.
+    
+        Needs OFFLINE off, because offline mode synthesises data and never calls the
+        loader -- which would make the flaky station impossible to simulate.
+        """
+        monkeypatch.setattr(ac, "OFFLINE", False)
+        real = ac.loader.fetch_observatory_data
+    
+        def flaky(station_code=None, **kwargs):
+            if str(station_code).upper() == "BOU":
+                return {"ok": False, "error": "no_data",
+                        "message": f"{station_code} has nothing for that day"}
+            return real(station_code=station_code, **kwargs)
+    
+        monkeypatch.setattr(ac.loader, "fetch_observatory_data", flaky)
+        store = _store(root)
+        store.workspace.create("P")
+>       payload, _ = _batch(store)
+                     ^^^^^^^^^^^^^
+
+test_projects.py:547: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+test_projects.py:502: in _batch
+    return ac.HANDLERS["fetch_many"](args, store)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_core.py:5189: in _handle_fetch_many
+    payload, _ = _handle_fetch(
+agent_core.py:3925: in _handle_fetch
+    result = loader.fetch_observatory_data(
+test_projects.py:542: in flaky
+    return real(station_code=station_code, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+intermagnet_loader.py:868: in fetch_observatory_data
+    df, infos, attempts = _fetch_chunk(
+intermagnet_loader.py:628: in _fetch_chunk
+    df, info = fetcher(code, start, end, state, samples_per_day)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+intermagnet_loader.py:577: in _fetch_kyoto
+    resp = _request(
+intermagnet_loader.py:152: in _request
+    resp = _http().request(method, url, params=params, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:651: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\sessions.py:784: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\requests\adapters.py:696: in send
+    resp = conn.urlopen(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:788: in urlopen
+    response = self._make_request(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:464: in _make_request
+    self._validate_conn(conn)
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connectionpool.py:1106: in _validate_conn
+    conn.connect()
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:759: in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\connection.py:204: in _new_conn
+    sock = connection.create_connection(
+..\..\Programs\Python\Python312\Lib\site-packages\urllib3\util\connection.py:60: in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+host = 'wdc.kugi.kyoto-u.ac.jp'
+args = (443, <AddressFamily.AF_UNSPEC: 0>, <SocketKind.SOCK_STREAM: 1>)
+kwargs = {}
+
+    def _resolve(host, *args, **kwargs):
+        if not _local(host):
+>           raise RuntimeError('Offline pytest blocked external DNS: '+str(host))
+E           RuntimeError: Offline pytest blocked external DNS: wdc.kugi.kyoto-u.ac.jp
+
+offline_test_guard.py:23: RuntimeError
+=========================== short test summary info ===========================
+FAILED test_agent_core.py::test_calculate_eej_index_offline_returns_a_derived_frame
+FAILED test_intermagnet_loader.py::test_pre_network_date_is_no_data - Runtime...
+FAILED test_projects.py::test_a_station_that_fails_does_not_sink_the_others
+3 failed, 1323 passed, 23 deselected in 89.13s (0:01:29)

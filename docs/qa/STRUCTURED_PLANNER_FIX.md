@@ -33,7 +33,17 @@
 
 Три исходных ответа настоящей Qwen сохранены в регрессионных данных. Проверяются разделение compute/discuss и facts/interpretation/plan, отсутствие загрузок при обсуждении, запрет старого fallback при повреждённом структурированном ответе, выполнение настоящего обработчика baseline, сохранение текста объяснения, делегирование полной матрицы, границы числа операций и обязательность оператора метрики. Подмены научных вызовов корректными ответами не скрыты: тестовые backend помечены как фикстуры, а настоящие научные ответы оцениваются отдельно.
 
-Итог: **1323 passed, 23 deselected**, в том числе 28 новых регрессий структурированного планировщика; **9 HTTP-проверок Gradio прошли**. Сетевые и live_model проверки не включены в автономный набор. [Сводка](../evidence/structured_planner_fix_20261126/RESULTS.json), [pytest](../evidence/structured_planner_fix_20261126/pytest.txt), [HTTP](../evidence/structured_planner_fix_20261126/gradio_http.json). Реальный новый структурированный этап на Qwen 14B пока требует живого подтверждения.
+Итог с воспроизводимой изоляцией сети: **1325 passed, 24 deselected**, в том числе 28 новых регрессий структурированного планировщика; **9 HTTP-проверок Gradio прошли**. Сетевые и live_model проверки не включены в автономный набор. [Сводка](../evidence/structured_planner_fix_20261126/RESULTS.json), [pytest](../evidence/structured_planner_fix_20261126/pytest_isolated.txt), [HTTP](../evidence/structured_planner_fix_20261126/gradio_http.json). Реальный новый структурированный этап на Qwen 14B пока требует живого подтверждения.
+
+## Отделение автономных тестов от живых сервисов
+
+Дополнительный повтор обнаружил старую зависимость от живого каталога станций: при TLS-ошибках GetCapabilities/HAPI упали восемь проверок координат и времени. [Неуспешный журнал сохранён](../evidence/structured_planner_fix_20261126/catalogue_dependency_failure.txt). Это не засчитано как PASS и не исправлялось изменением координат или формул.
+
+Автономный runner теперь воспроизводит записанный каталог из `tests/fixtures/station_registry_snapshot.json` только в одноразовой копии. В метаданных указаны исходное время получения, число станций и SHA256. Свежая отметка тестового кэша служит только воспроизведению; рабочий кэш и загрузчик не меняются. Плагин pytest блокирует внешние DNS и `socket.connect`, оставляя loopback для локальных проверок. [Метаданные последнего запуска](../evidence/structured_planner_fix_20261126/run_isolated.json).
+
+Этот запрет выявил ещё три неявных сетевых обращения. Две проверки (сборка EEJ и частичный пакет) теперь используют обозначенные тестовые входы, сохраняя прежние проверки результатов. Проверка реального отсутствия данных за историческую дату помечена сетевой, её критерий не менялся. Уже существующая сетевая проверка каталога запрашивает `refresh=True`, чтобы кэш не выдавался за доступность сайта. [Журнал обнаружения](../evidence/structured_planner_fix_20261126/remaining_network_dependencies.txt).
+
+1325 passed подтверждает автономное поведение на известных входах. Это не подтверждение работы GetCapabilities из этой среды, всех сетевых источников, новой классификации живой Qwen или научных выводов. Результаты этих проверок учитываются отдельно.
 
 ## Проверка на уже загруженной модели
 
@@ -42,3 +52,37 @@
 Проверяются три неизменённых запроса: план исследования, два опорных уровня, критика абзаца. Для каждого ожидаются `status=ok`, `stage=accepted` и правильный режим: plan, analyze, explain. `ROUTING CHECK: passed=true` проверяет маршрут, не научную правильность ответа.
 
 После успешного предпросмотра полный прогон 12 сообщений выполняется из свежего сеанса с новой dev-веткой обычными ячейками. Исходные формулировки не меняются. Только этот прогон позволит оценить конечные научные ответы; успех JSON-генерации его не заменяет.
+
+Готовая ячейка для существующего kernel (Kaggle и Colab), после загрузки `brain`:
+
+```python
+# Проверка нового компонента на существующем brain; это не установочная ячейка.
+import hashlib
+from types import SimpleNamespace
+from urllib.request import urlopen
+
+assert 'brain' in globals(), 'Сначала загрузи brain обычной ячейкой загрузки модели.'
+preview_base = 'https://raw.githubusercontent.com/IgorCim/geomagnetic-agent-dev/25723cb79cdc0279886b3889f51bdbd7b3d9b1c1/'
+
+
+def load_preview_component(filename, expected_sha256):
+    url = preview_base + filename
+    with urlopen(url, timeout=30) as response:
+        code = response.read()
+    assert hashlib.sha256(code).hexdigest() == expected_sha256, 'SHA256 не совпал: ' + filename
+    namespace = {'__name__': 'isolated_planner_preview', '__file__': url,
+                 '__source_sha256__': expected_sha256}
+    exec(compile(code, url, 'exec'), namespace)
+    return SimpleNamespace(**namespace)
+
+
+new_planner = load_preview_component('request_planner.py', 'ede95a1c1919d3905164548a1612a64c0f913b8b134d42967f274ad90d3a7b09')
+preview_probe = load_preview_component('tools/probe_request_planner.py', '2c81ffbd24e8cdbdd9ea911f9a634178a9960082ceebe1bab601ee68d44ff7cb')
+for name in ('demo', 'qa_download'):
+    ui = globals().get(name)
+    if ui is not None:
+        ui.close()
+print('Проверяю новый компонент; установленный агент и brain не заменяются.', flush=True)
+preview_result = preview_probe.preview(brain, new_planner)
+print('ZIP проверки:', preview_result['archive'], flush=True)
+```

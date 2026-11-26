@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 
 
@@ -29,7 +30,7 @@ def main() -> int:
     files += [root / name for name in [
         'tools/run_chat_acceptance.py', 'tools/kaggle_chat_acceptance.py', 'docs/LONG_CHAT.md',
         'tools/run_full_evidence.py', 'tools/run_request_planner_review.py', 'tools/probe_request_planner.py',
-        'tests/fixtures/request_planner_v1_replies.json',
+        'tests/fixtures/request_planner_v1_replies.json', 'tests/fixtures/station_registry_snapshot.json',
         'docs/qa/SCIENTIFIC_ADVISOR_CASES.json', 'docs/evidence/scientific_advisor_before.txt',
         'tools/run_prompt_diagnostics.py', 'tools/kaggle_prompt_diagnostics.py',
         'tools/kaggle_prompt_diagnostics_remaining.py',
@@ -46,16 +47,23 @@ def main() -> int:
             versions[name] = None
     revision = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True).stdout.strip()
     env = os.environ.copy()
-    env.update(PYTEST_DISABLE_PLUGIN_AUTOLOAD="1", PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8")
+    env.update(PYTEST_DISABLE_PLUGIN_AUTOLOAD="1", PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8", GRADIO_ANALYTICS_ENABLED="False")
     # A developer credential must not leak into a test request or its output.
     env.pop("SUPERMAG_LOGON", None)
-    command = [sys.executable, "-B", "-m", "pytest", "-q", "-m", "not network and not live_model", "-p", "no:cacheprovider", f"--junitxml={output / 'pytest.xml'}"]
+    command = [sys.executable, "-B", "-m", "pytest", "-q", "-m", "not network and not live_model", "-p", "offline_test_guard", "-p", "no:cacheprovider", f"--junitxml={output / 'pytest.xml'}"]
     with tempfile.TemporaryDirectory(prefix="geomag_verify_") as directory:
         checkout = Path(directory)
         for source in files:
             destination = checkout / source.relative_to(root)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
+        # Explicit recorded input for coordinate unit tests, not a live-source PASS.
+        # Only the disposable cache timestamp is current; provenance retains the
+        # original retrieval time. The real project's cache is never overwritten.
+        fixture = json.loads((checkout/'tests/fixtures/station_registry_snapshot.json').read_text(encoding='utf-8'))
+        (checkout/'cache').mkdir(exist_ok=True)
+        (checkout/'cache/_stations.json').write_text(json.dumps(
+            {'fetched_at':time.time(), 'stations':fixture['stations']}), encoding='utf-8')
         # Pin checks need historical script bytes, not a .git directory in the
         # disposable copy. Export exactly the immutable blobs named by launchers.
         pinned_hashes = {}
@@ -83,7 +91,7 @@ def main() -> int:
                 print(line, end="", flush=True)
             returncode = process.wait()
     changed = [name for name, digest in hashes.items() if hashlib.sha256((root / name).read_bytes()).hexdigest() != digest]
-    report = {"time_utc": stamp, "revision": revision, "source_sha256": hashes, "pinned_qa_sha256": pinned_hashes, "versions": versions, "python": sys.version, "command": command, "exit_code": returncode, "original_files_changed_during_test": changed, "scope": "Offline pytest in a disposable source copy. Does not verify real LLM, browser rendering or current service availability."}
+    report = {"time_utc": stamp, "revision": revision, "source_sha256": hashes, "pinned_qa_sha256": pinned_hashes, "versions": versions, "python": sys.version, "command": command, "exit_code": returncode, "original_files_changed_during_test": changed, "station_registry_fixture": {"source":"tests/fixtures/station_registry_snapshot.json", "retrieved_at_utc":fixture['original_fetched_at_utc'], "rows":len(fixture['stations'])}, "network_guard":"External DNS and socket connections blocked in pytest; loopback allowed.", "scope": "Offline pytest in a disposable source copy using a recorded station catalogue. Does not verify real LLM, browser rendering or current service availability."}
     (output / "run.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return returncode or (1 if changed else 0)
 

@@ -1,0 +1,224 @@
+.....F.................................................................. [  5%]
+........................................................................ [ 10%]
+..................................................F.F.FFF.F............. [ 16%]
+........................................................................ [ 21%]
+........................................................................ [ 27%]
+........................................................................ [ 32%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+.......F................................................................ [ 48%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+........................................................................ [ 65%]
+........................................................................ [ 70%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 87%]
+........................................................................ [ 92%]
+........................................................................ [ 97%]
+............................                                             [100%]
+================================== FAILURES ===================================
+___________________ test_station_hint_uses_real_iaga_codes ____________________
+
+    def test_station_hint_uses_real_iaga_codes():
+        """Guessing codes produces wrong stations: ABK is Abisko, not Abakan."""
+        import intermagnet_loader as loader
+    
+>       registry = loader.get_station_details()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_agent_core.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+intermagnet_loader.py:472: in get_station_details
+    return _load_station_registry(refresh=refresh)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+refresh = False
+
+    def _load_station_registry(refresh: bool) -> dict[str, dict[str, Any]]:
+        if not refresh:
+            cached = _load_station_cache()
+            if cached:
+                return cached
+    
+        registry: dict[str, dict[str, Any]] = {}
+        problems: list[str] = []
+    
+        try:
+            registry.update(_fetch_gin_capabilities())
+        except Exception as exc:
+            problems.append(f"edinburgh_gin: {exc}")
+    
+        try:
+            for code, meta in _fetch_kyoto_catalog().items():
+                if code in registry:
+                    if "kyoto_hapi" not in registry[code]["sources"]:
+                        registry[code]["sources"].append("kyoto_hapi")
+                else:
+                    registry[code] = meta
+        except Exception as exc:
+            problems.append(f"kyoto_hapi: {exc}")
+    
+        if not registry:
+>           raise RuntimeError(
+                "Could not load station catalogue from any source: " + "; ".join(problems)
+            )
+E           RuntimeError: Could not load station catalogue from any source: edinburgh_gin: All 3 attempts to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed: HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)'))); kyoto_hapi: All 3 attempts to https://wdc.kugi.kyoto-u.ac.jp/hapi/catalog failed: HTTPSConnectionPool(host='wdc.kugi.kyoto-u.ac.jp', port=443): Max retries exceeded with url: /hapi/catalog (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))
+
+intermagnet_loader.py:452: RuntimeError
+------------------------------ Captured log call ------------------------------
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed (HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 1/3 in 1s
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed (HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 2/3 in 2s
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://wdc.kugi.kyoto-u.ac.jp/hapi/catalog failed (HTTPSConnectionPool(host='wdc.kugi.kyoto-u.ac.jp', port=443): Max retries exceeded with url: /hapi/catalog (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 1/3 in 1s
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://wdc.kugi.kyoto-u.ac.jp/hapi/catalog failed (HTTPSConnectionPool(host='wdc.kugi.kyoto-u.ac.jp', port=443): Max retries exceeded with url: /hapi/catalog (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 2/3 in 2s
+____________ test_geomag_coords_handler_returns_dipole_coordinates ____________
+
+    def test_geomag_coords_handler_returns_dipole_coordinates():
+        """The handler answers with tilted-dipole coordinates and names its model."""
+        payload, note = ac._handle_get_station_geomagnetic_coords(
+            {"station_code": "IRT"}, ac.FrameStore()
+        )
+>       assert payload["ok"], payload
+E       AssertionError: {'ok': False, 'error': 'invalid_input', 'message': "float() argument must be a string or a real number, not 'NoneType'"}
+E       assert False
+
+test_agent_core.py:2401: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed (HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 1/3 in 1s
+WARNING  intermagnet_loader:intermagnet_loader.py:170 Request to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed (HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))), retry 2/3 in 2s
+WARNING  intermagnet_loader:intermagnet_loader.py:456 Station catalogue partially degraded -- edinburgh_gin: All 3 attempts to https://imag-data.bgs.ac.uk/GIN_V1/GINServices failed: HTTPSConnectionPool(host='imag-data.bgs.ac.uk', port=443): Max retries exceeded with url: /GIN_V1/GINServices?Request=GetCapabilities&Format=json (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)')))
+____________________ test_calculate_mlt_is_inside_the_day _____________________
+
+    def test_calculate_mlt_is_inside_the_day():
+        """MLT is a time of day: 0 <= mlt < 24, with a human HH:MM companion."""
+        payload, note = ac._handle_calculate_mlt(
+            {"station_code": "IRT", "timestamp": "2024-09-10T12:00:00Z"},
+            ac.FrameStore(),
+        )
+>       assert payload["ok"], payload
+E       AssertionError: {'ok': False, 'error': 'invalid_input', 'message': "float() argument must be a string or a real number, not 'NoneType'"}
+E       assert False
+
+test_agent_core.py:2422: AssertionError
+________________ test_group_stations_by_mlt_bins_every_station ________________
+
+    def test_group_stations_by_mlt_bins_every_station():
+        """All three verification stations land in exactly one bin each."""
+        payload, note = ac._handle_group_stations_by_mlt(
+            {
+                "stations": ["IRT", "API", "BSL"],
+                "timestamp": "2024-09-10T12:00:00Z",
+            },
+            ac.FrameStore(),
+        )
+        assert payload["ok"], payload
+        binned = [code for codes in payload["bins"].values() for code in codes]
+>       assert sorted(binned) == ["API", "BSL", "IRT"]
+E       AssertionError: assert [] == ['API', 'BSL', 'IRT']
+E         
+E         Right contains 3 more items, first extra item: 'API'
+E         Use -v to get more diff
+
+test_agent_core.py:2449: AssertionError
+______________ test_group_stations_by_mlt_skips_unknown_stations ______________
+
+    def test_group_stations_by_mlt_skips_unknown_stations():
+        """A bad code in the list must not abort the good ones."""
+        payload, note = ac._handle_group_stations_by_mlt(
+            {"stations": ["IRT", "ZZZ"], "timestamp": "2024-09-10T12:00:00Z"},
+            ac.FrameStore(),
+        )
+        assert payload["ok"], payload
+>       assert [c for codes in payload["bins"].values() for c in codes] == ["IRT"]
+E       AssertionError: assert [] == ['IRT']
+E         
+E         Right contains one more item: 'IRT'
+E         Use -v to get more diff
+
+test_agent_core.py:2461: AssertionError
+___________ test_calculate_local_time_is_ut_plus_longitude_over_15 ____________
+
+    def test_calculate_local_time_is_ut_plus_longitude_over_15():
+        """LT is civil time: UT + longitude/15, wrapped into [0, 24)."""
+        from intermagnet_loader import get_available_stations
+    
+>       lon = float(get_available_stations()["IRT"][2])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: float() argument must be a string or a real number, not 'NoneType'
+
+test_agent_core.py:2471: TypeError
+__________ test_calculate_local_time_rejects_an_unparsable_timestamp __________
+
+    def test_calculate_local_time_rejects_an_unparsable_timestamp():
+        """A garbage timestamp is an error payload, never an exception."""
+        payload, note = ac._handle_calculate_local_time(
+            {"station_code": "IRT", "timestamp": "not-a-time"},
+            ac.FrameStore(),
+        )
+        assert ac.is_error(payload)
+>       assert payload["error"] == "invalid_input"
+E       AssertionError: assert 'station_not_found' == 'invalid_input'
+E         
+E         - invalid_input
+E         + station_not_found
+
+test_agent_core.py:2500: AssertionError
+___________ test_plot_overlay_two_stations_returns_html_and_offsets ___________
+
+tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-1013/test_plot_overlay_two_stations0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000020113C15370>
+
+    def test_plot_overlay_two_stations_returns_html_and_offsets(tmp_path, monkeypatch):
+        """Two fetched stations overlay onto one HTML file, north first."""
+        import intermagnet_loader as loader
+    
+        monkeypatch.setattr(ac, "OFFLINE", False)
+        monkeypatch.setattr(plotter, "DEFAULT_OUTPUT_DIR", tmp_path)
+        monkeypatch.setattr(
+            loader,
+            "fetch_observatory_data",
+            lambda station_code=None, start_date=None, end_date=None, **kw: _day(start_date),
+        )
+        store = ac.FrameStore()
+        for code in ("IRT", "API"):
+            payload, _ = ac._handle_fetch(
+                {"station_code": code, "start_date": "2024-09-10", "end_date": "2024-09-10"},
+                store,
+            )
+            assert not ac.is_error(payload), payload
+    
+        payload, note = ac._handle_plot_overlay(
+            {
+                "stations": ["API", "IRT"],
+                "dates": ["2024-09-10"],
+                "component": "H",
+                "offsets": {"IRT": 150},
+            },
+            store,
+        )
+        assert not ac.is_error(payload), payload
+        assert Path(payload["plot_path"]).exists()
+        assert payload["plot_path"] == payload["path"]
+        assert payload["component"] == "H"
+        assert payload["date"] == "2024-09-10"
+        assert payload["offsets_applied"]["IRT"] == 150.0
+        # IRT (geomag-lat ~41) must come before API (southern hemisphere).
+>       assert payload["stations"].index("IRT") < payload["stations"].index("API")
+E       AssertionError: assert 1 < 0
+E        +  where 1 = <built-in method index of list object at 0x00000201143C7C00>('IRT')
+E        +    where <built-in method index of list object at 0x00000201143C7C00> = ['API', 'IRT'].index
+E        +  and   0 = <built-in method index of list object at 0x00000201143C7C00>('API')
+E        +    where <built-in method index of list object at 0x00000201143C7C00> = ['API', 'IRT'].index
+
+test_handles_and_plots.py:891: AssertionError
+=========================== short test summary info ===========================
+FAILED test_agent_core.py::test_station_hint_uses_real_iaga_codes - RuntimeEr...
+FAILED test_agent_core.py::test_geomag_coords_handler_returns_dipole_coordinates
+FAILED test_agent_core.py::test_calculate_mlt_is_inside_the_day - AssertionEr...
+FAILED test_agent_core.py::test_group_stations_by_mlt_bins_every_station - As...
+FAILED test_agent_core.py::test_group_stations_by_mlt_skips_unknown_stations
+FAILED test_agent_core.py::test_calculate_local_time_is_ut_plus_longitude_over_15
+FAILED test_agent_core.py::test_calculate_local_time_rejects_an_unparsable_timestamp
+FAILED test_handles_and_plots.py::test_plot_overlay_two_stations_returns_html_and_offsets
+8 failed, 1316 passed, 23 deselected in 267.52s (0:04:27)
