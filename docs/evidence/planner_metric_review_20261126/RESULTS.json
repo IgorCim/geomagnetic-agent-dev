@@ -1,0 +1,22 @@
+{
+  "scope": "Offline regressions, including replay of actual v2 misclassification. New Qwen behavior is NOT_RUN locally.",
+  "passed": 1332,
+  "deselected": 24,
+  "new_tests": 7,
+  "live_v2_protocol": "3/3 accepted",
+  "live_v2_routing_review": "2/3; baseline plan adds unrequested EEJ",
+  "updated_live_model": "NOT_RUN",
+  "scientific_acceptance": "NOT_RUN",
+  "planner_system_chars": 2977,
+  "planner_max_output_tokens": 360,
+  "planner_max_input_chars": 8000,
+  "unchanged": [
+    "agent_core.py",
+    "chat_session.py",
+    "gradio_app.py",
+    "physics_engine.py",
+    "geomag_math.py",
+    "geomag_plotter.py",
+    "agent_planner.py"
+  ]
+}

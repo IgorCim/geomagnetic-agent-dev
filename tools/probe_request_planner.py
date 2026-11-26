@@ -80,6 +80,37 @@ def inspect_call(record, ac, rp):
     return {**result, 'stage': 'accepted', 'validated': validated}
 
 
+
+def check_route(key, decision, inspection, backend_calls):
+    """Check these original requests, including unrequested scientific work.
+
+    An accepted JSON object is a protocol result, not semantic correctness or
+    scientific acceptance. Never repair the decision to make this check pass.
+    """
+    expected = {'plan':'plan', 'baselines':'analyze', 'critique':'explain'}[key]
+    errors = []
+    if decision.get('status') != 'ok' or decision.get('mode') != expected:
+        errors.append('wrong status/mode')
+    if backend_calls != 1 or len(inspection) != 1 or inspection[0].get('stage') != 'accepted':
+        errors.append('expected one accepted backend response')
+    if key in ('plan','critique'):
+        if decision.get('tools') or decision.get('metrics'):
+            errors.append('discussion must not authorize execution')
+    if key == 'baselines':
+        allowed = {'calculate_baseline','calculate_derived_math','get_statistics',
+                   'fetch_observatory_data','calculate_derived_components'}
+        if 'calculate_baseline' not in decision.get('tools', []):
+            errors.append('missing calculate_baseline')
+        extra_tools = set(decision.get('tools', [])) - allowed
+        if extra_tools:
+            errors.append('unrequested operations: ' + ', '.join(sorted(extra_tools)))
+        if decision.get('metrics'):
+            errors.append('unrequested physical metrics: ' + ', '.join(decision['metrics']))
+        if decision.get('stations') != ['irt'] or decision.get('dates') != ['2024-09-12']:
+            errors.append('wrong station/date for baseline comparison')
+    return {'expected_mode':expected, 'passed':not errors, 'errors':errors}
+
+
 def _adapter(brain, ac):
     recorder = BackendRecorder(brain._llm)
     diagnostic = ac.LlamaBrain(
@@ -158,14 +189,8 @@ def _run(brain, *, scope, planner=None):
                         print('RAW BACKEND RESPONSE:', json.dumps([call.get('response') or call.get('backend_exception') for call in captured], ensure_ascii=False, default=str), flush=True)
                         print('PARSE / VALIDATION:', json.dumps(row['inspection'], ensure_ascii=False, default=str), flush=True)
                         if hasattr(rp, 'ARGUMENT_SCHEMA'):
-                            expected = {'plan': 'plan', 'baselines': 'analyze', 'critique': 'explain'}[key]
-                            decision = row['production_decision'] or {}
-                            row['routing_check'] = {
-                                'expected_mode': expected,
-                                'passed': decision.get('status') == 'ok' and decision.get('mode') == expected
-                                          and len(captured) == 1 and row['inspection'][0].get('stage') == 'accepted'
-                                          and (key != 'baselines' or 'calculate_baseline' in decision.get('tools', [])),
-                            }
+                            row['routing_check'] = check_route(
+                                key, row['production_decision'] or {}, row['inspection'], len(captured))
                             print('ROUTING CHECK:', json.dumps(row['routing_check'], ensure_ascii=False), flush=True)
                         if store.names():
                             raise RuntimeError('Diagnostic unexpectedly produced data frames')

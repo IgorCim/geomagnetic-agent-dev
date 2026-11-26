@@ -146,3 +146,25 @@ def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeyp
     assert 'fixture-private-logon' not in (Path(result['run_dir'])/'report.json').read_text(encoding='utf-8')
     assert Path(result['archive']).is_file()
     assert not list((repo/'verification').rglob('*.csv'))
+
+
+@pytest.mark.parametrize('key,expected_pass', [('plan',True),('baselines',False),('critique',True)])
+def test_recorded_v2_protocol_success_is_not_automatically_semantic_success(key,expected_pass):
+    # Actual Qwen replies, not generated answers for a live-model PASS.
+    recorded=json.loads((ROOT/'tests/fixtures/request_planner_v2_replies.json').read_text(encoding='utf-8'))[key]
+    value=json.loads(recorded['response']['choices'][0]['message']['content'])
+    decision={'status':'ok',**rp.validate(rp.decode_arguments(value),recorded['prompt'],'')}
+    check=P['check_route'](key,decision,[{'stage':'accepted'}],1)
+    assert check['passed'] is expected_pass
+    if key=='baselines':
+        assert decision['mode']=='analyze' and 'calculate_baseline' in decision['tools']
+        assert decision['metrics']==['eej_index']  # Do not silently fix recorded evidence.
+        assert any('eej_index' in error for error in check['errors'])
+
+
+def test_baseline_route_check_allows_relevant_helpers_without_requiring_a_proxy():
+    decision={'status':'ok',**plan('analyze',['calculate_baseline','calculate_derived_math','get_statistics'],
+                                  ['irt'],['2024-09-12'])}
+    assert P['check_route']('baselines',decision,[{'stage':'accepted'}],1)['passed']
+    decision['tools'].append('plot_components')
+    assert not P['check_route']('baselines',decision,[{'stage':'accepted'}],1)['passed']

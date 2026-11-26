@@ -1,0 +1,84 @@
+{
+  "scope": "Review of recorded live v2 decisions, not a new model run or scientific acceptance.",
+  "recorded_source": "docs/evidence/request_planner_probe_v2_20261126.txt",
+  "recorded_sha256": "35b0726fb261f6d15e0fadb0a9f16c9b51f4b6f117d8c4bbe060b65398571438",
+  "protocol_accepted": 3,
+  "routing_passed": 2,
+  "cases": [
+    {
+      "id": "plan",
+      "decision": {
+        "status": "ok",
+        "tools": [],
+        "metrics": [],
+        "stations": [
+          "irt",
+          "bou"
+        ],
+        "dates": [
+          "2024-09-10",
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "plan",
+        "question": "Дифференцировать геомагнитную активность 10 и 12 сентября 2024 года."
+      },
+      "routing_check": {
+        "expected_mode": "plan",
+        "passed": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "baselines",
+      "decision": {
+        "status": "ok",
+        "tools": [
+          "calculate_baseline",
+          "calculate_derived_math",
+          "calculate_eej_index"
+        ],
+        "metrics": [
+          "eej_index"
+        ],
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "analyze",
+        "question": "Для IRT за 12 сентября 2024 года получить два опорных уровня H: по всему дню и по окну 00:00–04:00 UTC. Сравнить, как выбор опорного уровня влияет на интерпретацию возмущения. Объс"
+      },
+      "routing_check": {
+        "expected_mode": "analyze",
+        "passed": false,
+        "errors": [
+          "unrequested operations: calculate_eej_index",
+          "unrequested physical metrics: eej_index"
+        ]
+      }
+    },
+    {
+      "id": "critique",
+      "decision": {
+        "status": "ok",
+        "tools": [],
+        "metrics": [],
+        "stations": [],
+        "dates": [],
+        "date_scope": "days",
+        "mode": "explain",
+        "question": "Оцени абзац для научного отчёта:\n\n«За день не найдено выбросов H выше 3 сигма, поэтому магнитная буря отсутствовала. Большое абсолютное H на другой станции доказывает более сильную"
+      },
+      "routing_check": {
+        "expected_mode": "explain",
+        "passed": true,
+        "errors": []
+      }
+    }
+  ],
+  "scientific_answers": "NOT_GENERATED",
+  "updated_live_model": "NOT_RUN"
+}

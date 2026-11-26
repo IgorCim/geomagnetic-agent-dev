@@ -193,3 +193,23 @@ def test_maximum_declared_operation_list_still_allows_required_metric_operators(
     assert result['status']=='ok',result
     assert len(result['tools'])==10
     assert {'apply_physics_formula','calculate_eej_index'}<=set(result['tools'])
+
+
+@pytest.mark.parametrize('key',['plan','baselines','critique'])
+def test_real_original_requests_get_metric_meanings_in_messages_within_existing_budget(key):
+    # A grammar's enum restricts tokens but is not a semantic catalogue for Qwen.
+    # Verify what the real adapter sends; this is not a live-model correctness test.
+    catalog=json.loads((ROOT/'docs/qa/SCIENTIFIC_ADVISOR_CASES.json').read_text(encoding='utf-8'))
+    backend=Backend(wire('discuss','plan'))
+    result=rp.plan_request(ac.LlamaBrain(backend),catalog['prompts'][key])
+    assert result['status']=='ok' and len(backend.calls)==1
+    request=backend.calls[0]
+    system=request['messages'][0]['content']
+    assert set(rp.METRIC_PURPOSES)==set(rp.METRICS)
+    assert all(f'{name}: {purpose}' in system for name,purpose in rp.METRIC_PURPOSES.items())
+    assert json.loads(request['messages'][1]['content'])['request']==catalog['prompts'][key]
+    assert len(system)<3100
+    assert sum(len(m['content']) for m in request['messages'])+len(json.dumps(rp.ARGUMENT_SCHEMA))<=rp.MAX_INPUT_CHARS
+    assert request['max_tokens']==360
+    assert request['response_format']['schema']==rp.ARGUMENT_SCHEMA
+    assert 'tools' not in request
