@@ -1,0 +1,18 @@
+{
+  "scope": "Review of user-supplied first live Qwen run; not an automated scientific PASS.",
+  "revision": "113a719",
+  "recorded_messages": 12,
+  "distinct_prompts": 10,
+  "accepted_plans": 0,
+  "fallback_plans": 12,
+  "fallback_reason": "invalid_plan:ValueError; exact detail absent in original log",
+  "final_answer_review": {
+    "fully_successful": 0,
+    "partial": 4,
+    "unsuccessful": 8,
+    "method": "Manual assessment of final answers against the original requests"
+  },
+  "source_file": "docs/evidence/semantic_request_planner_live_20261125.txt",
+  "original_attachment_sha256": "be4eff33d78e0bf5a205622f3c0a963124bf917f9dd139299d3081d112415bb5",
+  "source_sha256_normalized_utf8": "3359ce7b6f171235ebf3e0bb3c37e77c7778b6b03707c6088db43d3ce1eeb322"
+}
