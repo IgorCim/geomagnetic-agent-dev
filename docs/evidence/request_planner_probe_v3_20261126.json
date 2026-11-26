@@ -1,0 +1,92 @@
+{
+  "scope": "Actual Qwen planner-only preview; scientific answers were not generated.",
+  "source": "docs/evidence/request_planner_probe_v3_20261126.txt",
+  "attachment_sha256_bytes": "d7e2518ba8047261bb927eab526de906a68700f4e38bc2408e541eed589c7904",
+  "source_sha256_normalized_utf8": "e2f60ba10d273ac4d469a2f7142633f24d33bc6ae4450e532830ea2f81185750",
+  "protocol_accepted": 3,
+  "strict_routes_passed": 2,
+  "eej_index_selected": false,
+  "scientific_answers": "NOT_GENERATED",
+  "interpretation": "SQ baseline and vector deltas are related but distinct from scalar H means. Additional operations are mandatory in the current contract. Need an end-to-end run; this is not a count of incorrect final answers.",
+  "production_code_changed_this_step": false,
+  "cases": [
+    {
+      "id": "plan",
+      "decision": {
+        "status": "ok",
+        "tools": [],
+        "metrics": [],
+        "stations": [
+          "irt",
+          "bou"
+        ],
+        "dates": [
+          "2024-09-10",
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "plan",
+        "question": "Проверить, отличалась ли геомагнитная активность 10 и 12 сентября 2024 года для станций IRT и BOU, используя доступные наблюдения, солнечный ветер и геомагнитные индексы.",
+        "transport": "json_schema"
+      },
+      "strict_route_check": {
+        "expected_mode": "plan",
+        "passed": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "baselines",
+      "decision": {
+        "status": "ok",
+        "tools": [
+          "fetch_observatory_data",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "apply_physics_formula"
+        ],
+        "metrics": [
+          "sq_baseline",
+          "deltas"
+        ],
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "analyze",
+        "question": "Для IRT за 12 сентября 2024 года получи два опорных уровня H: по всему дню и по окну gst 00:00–04:00 UTC. Сравни, как выбор опорного уровня влияет на интерпретацию возмущения.\n\nОбъ",
+        "transport": "json_schema"
+      },
+      "strict_route_check": {
+        "expected_mode": "analyze",
+        "passed": false,
+        "errors": [
+          "unrequested operations: apply_physics_formula",
+          "unrequested physical metrics: sq_baseline, deltas"
+        ]
+      }
+    },
+    {
+      "id": "critique",
+      "decision": {
+        "status": "ok",
+        "tools": [],
+        "metrics": [],
+        "stations": [],
+        "dates": [],
+        "date_scope": "days",
+        "mode": "explain",
+        "question": "Какие утверждения обоснованы? Исправь абзац и укажи, какие результаты нужно получить для проверки оставшихся гипотез.",
+        "transport": "json_schema"
+      },
+      "strict_route_check": {
+        "expected_mode": "explain",
+        "passed": true,
+        "errors": []
+      }
+    }
+  ]
+}
