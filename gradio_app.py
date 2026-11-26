@@ -724,6 +724,10 @@ def make_chat_handler(brain: Any):
 
         try:
             intent_plan = core.understand_request(question, brain, store, VERBOSE)
+            if intent_plan and intent_plan.get('status') == 'error':
+                from request_planner import planning_failure_text
+                return answer_with(planning_failure_text(intent_plan),
+                                   json.dumps(intent_plan, ensure_ascii=False))
             if store.conversation.summary_requested(question) and not (intent_plan and intent_plan.get('status') == 'ok'):
                 return answer_with(store.conversation.summary(store, saved))
             plan = store.conversation.prepare(question, store, intent_plan)

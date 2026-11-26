@@ -114,7 +114,13 @@ def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeyp
         def __init__(self):self.calls=0
         def create_chat_completion(self,**kwargs):
             value=values[self.calls];self.calls+=1
-            response=transport(native(value))
+            if 'response_format' in kwargs:
+                wire={k:v for k,v in value.items() if k!='mode'}
+                wire.update(action='compute' if value['mode'] in ('execute','analyze') else 'discuss',
+                            answer='plan' if value['mode']=='plan' else 'interpretation')
+                response=transport({'content':json.dumps(wire)})
+            else:
+                response=transport(native(value))
             response['model']='fixture-private-logon'
             return response
     backend=Backend();brain=ac.LlamaBrain(backend)
@@ -124,6 +130,7 @@ def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeyp
     assert report['status']=='RECORDED' and report['scope'].startswith('TEST_FIXTURE')
     assert [r['production_decision']['status'] for r in report['cases']]==['ok']*3
     assert all(r['inspection'][0]['stage']=='accepted' for r in report['cases'])
+    assert all(r['routing_check']['passed'] for r in report['cases'])
     assert report['changed_source_files']==[] and report['original_backend_unchanged']
     assert report['scientific_acceptance']=='NOT_EVALUATED'
     assert 'fixture-private-logon' not in (Path(result['run_dir'])/'report.json').read_text(encoding='utf-8')

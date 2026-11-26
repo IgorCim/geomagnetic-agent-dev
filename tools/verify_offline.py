@@ -29,6 +29,7 @@ def main() -> int:
     files += [root / name for name in [
         'tools/run_chat_acceptance.py', 'tools/kaggle_chat_acceptance.py', 'docs/LONG_CHAT.md',
         'tools/run_full_evidence.py', 'tools/run_request_planner_review.py', 'tools/probe_request_planner.py',
+        'tests/fixtures/request_planner_v1_replies.json',
         'docs/qa/SCIENTIFIC_ADVISOR_CASES.json', 'docs/evidence/scientific_advisor_before.txt',
         'tools/run_prompt_diagnostics.py', 'tools/kaggle_prompt_diagnostics.py',
         'tools/kaggle_prompt_diagnostics_remaining.py',

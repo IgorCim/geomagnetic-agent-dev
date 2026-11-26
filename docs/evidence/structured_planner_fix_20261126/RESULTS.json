@@ -1,0 +1,23 @@
+{
+  "scope": "Offline regression and real HTTP with fixtures; live new Qwen routing and scientific answers are NOT_RUN locally.",
+  "passed": 1323,
+  "deselected": 23,
+  "new_structured_tests": 28,
+  "http_checks": 9,
+  "original_unchanged": {
+    "agent_core.py": true,
+    "chat_session.py": true,
+    "physics_engine.py": true
+  },
+  "unchanged": {
+    "SYSTEM_PROMPT": true,
+    "TOOL_SCHEMAS": true,
+    "LlamaBrain": true,
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_plotter.py": true,
+    "agent_planner.py": true
+  },
+  "recorded_failures_fixture": "tests/fixtures/request_planner_v1_replies.json",
+  "scientific_acceptance": "NOT_RUN_AFTER_FIX"
+}

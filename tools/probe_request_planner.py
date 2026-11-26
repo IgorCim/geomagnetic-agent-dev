@@ -47,6 +47,21 @@ def inspect_call(record, ac, rp):
     if not choices or not isinstance(choices[0].get('message'), dict):
         return {'stage': 'transport', 'message': 'Missing choices[0].message'}
     message = choices[0]['message']
+    if record['request'].get('response_format', {}).get('type') == 'json_object':
+        result = {'finish_reason': choices[0].get('finish_reason'), 'usage': response.get('usage')}
+        try:
+            value = json.loads(message.get('content') or '')
+        except Exception as exc:
+            return {**result, 'stage':'json', 'type':type(exc).__name__, 'message':str(exc)}
+        try:
+            decoded = rp.decode_arguments(value)
+            envelope = json.loads(record['request']['messages'][1]['content'])
+            aliases = dict(__import__('re').findall(r'([A-Z]{3})=([^,]+)', ac.STATION_HINT))
+            validated = rp.validate(decoded, envelope['request'], envelope['session'], aliases)
+        except Exception as exc:
+            return {**result, 'stage':'validation', 'arguments':value,
+                    'type':type(exc).__name__, 'message':str(exc)}
+        return {**result, 'stage':'accepted', 'arguments':value, 'validated':validated}
     reply = {'content': message.get('content') or '', 'tool_calls': message.get('tool_calls')}
     calls, leftover = ac.parse_tool_calls(reply, debug=False)
     result = {'finish_reason': choices[0].get('finish_reason'), 'usage': response.get('usage'),
@@ -74,10 +89,12 @@ def _adapter(brain, ac):
     return diagnostic, recorder
 
 
-def _run(brain, *, scope):
+def _run(brain, *, scope, planner=None):
     import agent_core as ac
     import request_planner as rp
     import project_store as ps
+    if planner is not None:
+        rp = planner
 
     if not isinstance(brain, ac.LlamaBrain) or isinstance(brain, ac.ScriptedBrain):
         raise TypeError('Нужен уже загруженный настоящий brain=LlamaBrain.')
@@ -107,6 +124,8 @@ def _run(brain, *, scope):
               'started_utc': datetime.now(timezone.utc).isoformat(), 'revision': ac.code_revision(),
               'n_ctx': brain._n_ctx, 'max_plan_tokens': rp.MAX_OUTPUT_TOKENS,
               'temperature': brain._temperature, 'source_sha256': hashes,
+              'planner_component': {'origin':getattr(rp,'__file__',None),
+                                    'sha256':getattr(rp,'__source_sha256__',None)},
               'status': 'RUNNING', 'cases': [], 'scientific_acceptance': 'NOT_EVALUATED'}
 
     def save():
@@ -126,12 +145,28 @@ def _run(brain, *, scope):
                     before = len(recorder.calls)
                     try:
                         print(f'\n=== {key} ===\n{prompt}', flush=True)
-                        row['production_decision'] = ac.understand_request(prompt, diagnostic, store, verbose=True)
+                        if planner is None:
+                            row['production_decision'] = ac.understand_request(prompt, diagnostic, store, verbose=True)
+                        else:
+                            aliases = dict(__import__('re').findall(r'([A-Z]{3})=([^,]+)', ac.STATION_HINT))
+                            row['production_decision'] = rp.plan_request(
+                                diagnostic, prompt, store.conversation.context(), ac.parse_tool_calls, aliases)
+                            print('[REQUEST PLANNER]', json.dumps(row['production_decision'], ensure_ascii=False), flush=True)
                         captured = recorder.calls[before:]
                         row['backend_calls'] = captured
                         row['inspection'] = [inspect_call(call, ac, rp) for call in captured]
                         print('RAW BACKEND RESPONSE:', json.dumps([call.get('response') or call.get('backend_exception') for call in captured], ensure_ascii=False, default=str), flush=True)
                         print('PARSE / VALIDATION:', json.dumps(row['inspection'], ensure_ascii=False, default=str), flush=True)
+                        if hasattr(rp, 'ARGUMENT_SCHEMA'):
+                            expected = {'plan': 'plan', 'baselines': 'analyze', 'critique': 'explain'}[key]
+                            decision = row['production_decision'] or {}
+                            row['routing_check'] = {
+                                'expected_mode': expected,
+                                'passed': decision.get('status') == 'ok' and decision.get('mode') == expected
+                                          and len(captured) == 1 and row['inspection'][0].get('stage') == 'accepted'
+                                          and (key != 'baselines' or 'calculate_baseline' in decision.get('tools', [])),
+                            }
+                            print('ROUTING CHECK:', json.dumps(row['routing_check'], ensure_ascii=False), flush=True)
                         if store.names():
                             raise RuntimeError('Diagnostic unexpectedly produced data frames')
                     except Exception:
@@ -162,3 +197,8 @@ def _run(brain, *, scope):
 def run(brain):
     """Public entry: inspect the caller's real, already-loaded model."""
     return _run(brain, scope='Real loaded model; production mini-planner only. No scientific execution.')
+
+
+def preview(brain, planner):
+    """Exercise a separately loaded new component; never patch installed modules."""
+    return _run(brain, scope='New structured planner component preview; installed executor unchanged.', planner=planner)

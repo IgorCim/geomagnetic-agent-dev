@@ -7757,7 +7757,8 @@ def understand_request(query: str, brain: Any, store: FrameStore, verbose: bool 
     for handle in store.names()[-6:]:
         context += "\n" + _dumps(frame_provenance(store, handle))
     aliases = dict(re.findall(r'([A-Z]{3})=([^,]+)', STATION_HINT))
-    decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases)
+    decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases,
+                               delegate_bulk=is_bulk_query(query))
     if verbose:
         print('[REQUEST PLANNER] ' + _dumps(decision))
     return decision
@@ -7819,7 +7820,16 @@ def run_agent(
     current_query = routing_query if routing_query is not None else user_query
     if tools is None:
         if intent_plan is None:intent_plan = understand_request(current_query, brain, store, verbose)
+        if intent_plan and intent_plan.get('status') == 'error':
+            from request_planner import planning_failure_text
+            return {'ok':False, 'error':'request_planning_failed', 'stop_reason':'request_planning_failed',
+                    'text':planning_failure_text(intent_plan), 'plots':[], 'tool_calls':[],
+                    'request_plan':intent_plan}
         if intent_plan and intent_plan.get('status') == 'ok':
+            if intent_plan.get('delegated_bulk'):
+                result = run_agent_with_planner(user_query, brain=brain, store=store, verbose=verbose)
+                result['request_plan'] = intent_plan
+                return result
             if contract is None:contract = store.conversation.prepare(current_query, store, intent_plan)
             if not contract.clarification:contract.apply_intent(intent_plan)
             if contract.clarification:
