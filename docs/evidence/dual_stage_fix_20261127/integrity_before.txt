@@ -1,0 +1,136 @@
+FF...FFFF                                                                [100%]
+================================== FAILURES ===================================
+___ test_written_shared_month_dates_are_preserved[10 \u0438\u043b\u0438 12] ___
+
+days = '10 ��� 12'
+
+    @pytest.mark.parametrize('days', ['10 ��� 12', '10 ���� 12', '10 � 12', '10/12', '10�12', '10 �� 12'])
+    def test_written_shared_month_dates_are_preserved(days):
+>       assert rp.explicit_dates(f'������ {days} �������� 2024 ����.')=={'2024-09-10','2024-09-12'}
+E       AssertionError: assert {'2024-09-12'} == {'2024-09-10', '2024-09-12'}
+E         
+E         Extra items in the right set:
+E         '2024-09-10'
+E         Use -v to get more diff
+
+test_request_integrity.py:12: AssertionError
+_ test_written_shared_month_dates_are_preserved[10 \u043b\u0438\u0431\u043e 12] _
+
+days = '10 ���� 12'
+
+    @pytest.mark.parametrize('days', ['10 ��� 12', '10 ���� 12', '10 � 12', '10/12', '10�12', '10 �� 12'])
+    def test_written_shared_month_dates_are_preserved(days):
+>       assert rp.explicit_dates(f'������ {days} �������� 2024 ����.')=={'2024-09-10','2024-09-12'}
+E       AssertionError: assert {'2024-09-12'} == {'2024-09-10', '2024-09-12'}
+E         
+E         Extra items in the right set:
+E         '2024-09-10'
+E         Use -v to get more diff
+
+test_request_integrity.py:12: AssertionError
+______ test_written_shared_month_dates_are_preserved[10 \u043f\u043e 12] ______
+
+days = '10 �� 12'
+
+    @pytest.mark.parametrize('days', ['10 ��� 12', '10 ���� 12', '10 � 12', '10/12', '10�12', '10 �� 12'])
+    def test_written_shared_month_dates_are_preserved(days):
+>       assert rp.explicit_dates(f'������ {days} �������� 2024 ����.')=={'2024-09-10','2024-09-12'}
+E       AssertionError: assert {'2024-09-12'} == {'2024-09-10', '2024-09-12'}
+E         
+E         Extra items in the right set:
+E         '2024-09-10'
+E         Use -v to get more diff
+
+test_request_integrity.py:12: AssertionError
+_ test_multiple_baselines_remain_bound_to_their_table_component_and_request[H-False] _
+
+tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-1019/test_multiple_baselines_remain0')
+component = 'H', other_handle = False
+
+    @pytest.mark.parametrize('component,other_handle', [('H',False),('X',False),('H',True)])
+    def test_multiple_baselines_remain_bound_to_their_table_component_and_request(tmp_path,component,other_handle):
+        store=ac.FrameStore(workspace=ps.Workspace(root=tmp_path/'projects'))
+        h='raw:irt:2024-09-12'
+        store.put(h,pd.DataFrame({'timestamp':pd.date_range('2024-09-12',periods=8,freq='h',tz='UTC'),
+                                'X':[3.,0.,3.,0.,10.,10.,10.,10.], 'Y':[0.,4.,0.,4.,0.,0.,0.,0.], 'Z':[0.]*8}))
+        request=Request('TEST FIXTURE: multiple reference levels',calculation_tools=('calculate_baseline',))
+        values=[]
+        for mode in ['full','night']:
+            args={'df_descriptor':h,'component':'H','mode':mode,'night_hours':[0,4]}
+            payload,_=ac.HANDLERS['calculate_baseline'](args,store)
+            assert not ac.is_error(payload)
+            request.observe_result('calculate_baseline',args,payload)
+            values.append(payload['baseline'])
+        assert values==[6.75,3.5]
+        for value in values:
+            args={'df_descriptor':h,'component':'H','metric':'anomaly','baseline_value':value}
+>           assert request.check_call('calculate_derived_math',args,store) is None
+E           AssertionError: assert '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' is None
+E            +  where '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' = check_call('calculate_derived_math', {'df_descriptor': 'raw:irt:2024-09-12', 'component': 'H', 'metric': 'anomaly', 'baseline_value': np.float64(6.75)}, <agent_core.FrameStore object at 0x00000202C6175340>)
+E            +    where check_call = Request(query='TEST FIXTURE: multiple reference levels', date=None, fetch_date=None, station=None, handle=None, no_fet...hours=None, no_derive=False, required_operations=(), produced_handles=set(), no_source_substitution=False, intent=None).check_call
+
+test_request_integrity.py:31: AssertionError
+_ test_multiple_baselines_remain_bound_to_their_table_component_and_request[X-False] _
+
+tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-1019/test_multiple_baselines_remain1')
+component = 'X', other_handle = False
+
+    @pytest.mark.parametrize('component,other_handle', [('H',False),('X',False),('H',True)])
+    def test_multiple_baselines_remain_bound_to_their_table_component_and_request(tmp_path,component,other_handle):
+        store=ac.FrameStore(workspace=ps.Workspace(root=tmp_path/'projects'))
+        h='raw:irt:2024-09-12'
+        store.put(h,pd.DataFrame({'timestamp':pd.date_range('2024-09-12',periods=8,freq='h',tz='UTC'),
+                                'X':[3.,0.,3.,0.,10.,10.,10.,10.], 'Y':[0.,4.,0.,4.,0.,0.,0.,0.], 'Z':[0.]*8}))
+        request=Request('TEST FIXTURE: multiple reference levels',calculation_tools=('calculate_baseline',))
+        values=[]
+        for mode in ['full','night']:
+            args={'df_descriptor':h,'component':'H','mode':mode,'night_hours':[0,4]}
+            payload,_=ac.HANDLERS['calculate_baseline'](args,store)
+            assert not ac.is_error(payload)
+            request.observe_result('calculate_baseline',args,payload)
+            values.append(payload['baseline'])
+        assert values==[6.75,3.5]
+        for value in values:
+            args={'df_descriptor':h,'component':'H','metric':'anomaly','baseline_value':value}
+>           assert request.check_call('calculate_derived_math',args,store) is None
+E           AssertionError: assert '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' is None
+E            +  where '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' = check_call('calculate_derived_math', {'df_descriptor': 'raw:irt:2024-09-12', 'component': 'H', 'metric': 'anomaly', 'baseline_value': np.float64(6.75)}, <agent_core.FrameStore object at 0x00000202C617AFC0>)
+E            +    where check_call = Request(query='TEST FIXTURE: multiple reference levels', date=None, fetch_date=None, station=None, handle=None, no_fet...hours=None, no_derive=False, required_operations=(), produced_handles=set(), no_source_substitution=False, intent=None).check_call
+
+test_request_integrity.py:31: AssertionError
+_ test_multiple_baselines_remain_bound_to_their_table_component_and_request[H-True] _
+
+tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-1019/test_multiple_baselines_remain2')
+component = 'H', other_handle = True
+
+    @pytest.mark.parametrize('component,other_handle', [('H',False),('X',False),('H',True)])
+    def test_multiple_baselines_remain_bound_to_their_table_component_and_request(tmp_path,component,other_handle):
+        store=ac.FrameStore(workspace=ps.Workspace(root=tmp_path/'projects'))
+        h='raw:irt:2024-09-12'
+        store.put(h,pd.DataFrame({'timestamp':pd.date_range('2024-09-12',periods=8,freq='h',tz='UTC'),
+                                'X':[3.,0.,3.,0.,10.,10.,10.,10.], 'Y':[0.,4.,0.,4.,0.,0.,0.,0.], 'Z':[0.]*8}))
+        request=Request('TEST FIXTURE: multiple reference levels',calculation_tools=('calculate_baseline',))
+        values=[]
+        for mode in ['full','night']:
+            args={'df_descriptor':h,'component':'H','mode':mode,'night_hours':[0,4]}
+            payload,_=ac.HANDLERS['calculate_baseline'](args,store)
+            assert not ac.is_error(payload)
+            request.observe_result('calculate_baseline',args,payload)
+            values.append(payload['baseline'])
+        assert values==[6.75,3.5]
+        for value in values:
+            args={'df_descriptor':h,'component':'H','metric':'anomaly','baseline_value':value}
+>           assert request.check_call('calculate_derived_math',args,store) is None
+E           AssertionError: assert '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' is None
+E            +  where '������� ������ baseline ��� ���� �������/���������� � ������� ������� � ������� ��� ������ �������� � baseline_value.' = check_call('calculate_derived_math', {'df_descriptor': 'raw:irt:2024-09-12', 'component': 'H', 'metric': 'anomaly', 'baseline_value': np.float64(6.75)}, <agent_core.FrameStore object at 0x00000202C61791F0>)
+E            +    where check_call = Request(query='TEST FIXTURE: multiple reference levels', date=None, fetch_date=None, station=None, handle=None, no_fet...hours=None, no_derive=False, required_operations=(), produced_handles=set(), no_source_substitution=False, intent=None).check_call
+
+test_request_integrity.py:31: AssertionError
+=========================== short test summary info ===========================
+FAILED test_request_integrity.py::test_written_shared_month_dates_are_preserved[10 \u0438\u043b\u0438 12]
+FAILED test_request_integrity.py::test_written_shared_month_dates_are_preserved[10 \u043b\u0438\u0431\u043e 12]
+FAILED test_request_integrity.py::test_written_shared_month_dates_are_preserved[10 \u043f\u043e 12]
+FAILED test_request_integrity.py::test_multiple_baselines_remain_bound_to_their_table_component_and_request[H-False]
+FAILED test_request_integrity.py::test_multiple_baselines_remain_bound_to_their_table_component_and_request[X-False]
+FAILED test_request_integrity.py::test_multiple_baselines_remain_bound_to_their_table_component_and_request[H-True]
+6 failed, 3 passed in 0.86s

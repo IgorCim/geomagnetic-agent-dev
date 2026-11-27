@@ -19,7 +19,7 @@ FRAME_ARGS = {"df_descriptor", "df1", "df2", "ground_df_descriptor", "solar_wind
 FETCH = {"fetch_observatory_data", "fetch_solar_wind", "fetch_geomagnetic_indices", "fetch_supermag_data"}
 EXCLUDE_CODES = {"OMNI", "NOAA", "ISWA", "DST", "IAGA", "HTML", "GSM", "UTC", "ZIP", "APIX", "GIC", "SSC", "SML", "SME", "SMU", "MLT", "GSE"}
 CALCULATION_TOOLS = {"calculate_derived_components", "calculate_baseline", "calculate_derived_math",
-                     "evaluate_custom_formula", "apply_physics_formula", "detect_anomalies"}
+                     "evaluate_custom_formula", "apply_physics_formula", "detect_anomalies", "calculate_eej_index"}
 
 
 def capture_calculation(entry: dict, name: str, payload: Any) -> None:
@@ -29,7 +29,7 @@ def capture_calculation(entry: dict, name: str, payload: Any) -> None:
     if name not in CALCULATION_TOOLS or not isinstance(payload, dict):
         return
     keys = ("metric", "component", "computed", "definitions", "baseline", "mode", "window", "night_hours",
-            "n_samples", "n_finite", "unit", "delta", "max_delta", "mean_delta", "peak_rate",
+            "n_samples", "n_finite", "unit", "baseline_value", "delta", "max_delta", "mean_delta", "peak_rate",
             "formula", "min", "max", "mean", "column", "n_flagged", "sigma_threshold", "result", "limitations")
     entry["calculation"] = {k: payload[k] for k in keys if k in payload}
 
@@ -110,12 +110,12 @@ class Request:
             self.requested_metric = self.requested_formula = None
             self.routine = False
         else:
-            selected = set(intent['tools'])
+            selected = set(intent.get('required_operations', intent['tools']))
             self.wants_plot = bool(selected & {'plot_components','plot_comparison','plot_overlay','plot_space_weather_comparison'})
             self.wants_stats = 'get_statistics' in selected
             self.wants_local_time = 'calculate_local_time' in selected
-            self.required_operations = tuple(intent['tools'])
-            self.calculation_tools = tuple(t for t in intent['tools'] if t in CALCULATION_TOOLS)
+            self.required_operations = tuple(intent.get('required_operations', intent['tools']))
+            self.calculation_tools = tuple(t for t in self.required_operations if t in CALCULATION_TOOLS)
             self.wants_derived = self.wants_derived and 'calculate_derived_components' in selected
             if intent['mode'] == 'analyze':self.routine = False
             if len(intent['dates']) > 1:self.target = None
@@ -139,7 +139,12 @@ class Request:
                 self.produced_handles.add(produced.lower())
         if name == "calculate_baseline" and isinstance(payload, dict) and not payload.get("error") and payload.get("baseline") is not None:
             key = (str(args.get("df_descriptor", "")).lower(), str(args.get("component") or "H").upper())
-            self.observed_baselines[key] = payload["baseline"]
+            # Every confirmed value remains valid for this input and component.
+            # The request tool budget is below 32, so no valid observation from
+            # this request can be evicted by ordinary execution.
+            values = self.observed_baselines.setdefault(key, [])
+            if payload["baseline"] not in values:
+                values.append(payload["baseline"])
 
     def bound_statistics_args(self, store: Any) -> dict | None:
         """Resolve only a simple complete request against existing tables.
@@ -258,9 +263,12 @@ class Request:
         if (name == "calculate_derived_math" and str(args.get("metric")).lower() == "anomaly"
                 and "calculate_baseline" in self.calculation_tools):
             key = (str(args.get("df_descriptor", "")).lower(), str(args.get("component") or "H").upper())
-            baseline = self.observed_baselines.get(key)
+            baselines = self.observed_baselines.get(key, [])
             try:
-                matches = baseline is not None and math.isclose(float(args.get("baseline_value")), float(baseline), rel_tol=1e-12, abs_tol=1e-12)
+                actual = float(args.get("baseline_value"))
+                matches = math.isfinite(actual) and any(
+                    math.isclose(actual, float(value), rel_tol=1e-12, abs_tol=1e-12)
+                    for value in baselines)
             except (TypeError, ValueError):
                 matches = False
             if not matches:
@@ -327,8 +335,11 @@ class Request:
             if absent:
                 missing.append(f'включить в архив графики запрошенных пар: {sorted(absent)}')
         for tool in self.required_operations:
-            if not any(e.get('ok') and e.get('tool') == tool for e in log):
+            if tool not in self.calculation_tools and not any(e.get('ok') and e.get('tool') == tool for e in log):
                 missing.append(f'выполнить {tool} и получить фактический результат')
+        for metric in (self.intent or {}).get('required_metrics', []):
+            if not any(e.get('ok') and (e.get('calculation') or {}).get('metric')==metric for e in log):
+                missing.append(f'вычислить запрошенную физическую метрику {metric}')
         for tool in self.calculation_tools:
             if not any(e.get("ok") and e.get("tool") == tool and e.get("calculation") for e in log):
                 missing.append(f"выполнить {tool} и получить фактический результат")
@@ -426,8 +437,11 @@ class SessionMemory:
     last_stats: bool = False
     last_plot: bool = False
     last_inputs: list[str] = field(default_factory=list)
+    evidence: list[dict] = field(default_factory=list)
 
     def record(self, log: list[dict], store: Any) -> None:
+        from research_context import merge
+        self.evidence = merge(self.evidence, log)
         if any(e.get("ok") for e in log):
             self.last_stats = any(e.get("ok") and e.get("statistics") for e in log)
             self.last_plot = any(e.get("ok") and e.get("plot") for e in log)
@@ -608,7 +622,13 @@ class SessionMemory:
         return ("Подтверждённое состояние сессии (не заменяет вызов статистики):\n"
                 + "Первая успешная таблица: " + str(self.first_data or "не задана") + ". "
                 + "Первые успешные наземные загрузки в порядке получения: " + ", ".join(self.ground[:12])
-                + ". Последние использованные таблицы: " + ", ".join(self.recent) + ".\n")
+                + ". Последние использованные таблицы: " + ", ".join(self.recent) + ".\n"
+                + self.evidence_context())
+
+    def evidence_context(self) -> str:
+        if not self.evidence:return ''
+        from research_context import render
+        return render(self.evidence,max_chars=1100,with_notes=False)
 
     def summary(self, store: Any, saved: list[dict]) -> str:
         lines = ["Сводка по фактическому состоянию этой сессии:"]

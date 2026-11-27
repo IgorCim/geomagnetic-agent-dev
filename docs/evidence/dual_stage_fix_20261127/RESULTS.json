@@ -1,0 +1,39 @@
+{
+  "scope": "Offline engineering regressions and fixture-driven real Gradio HTTP; live Qwen comprehension and scientific answers NOT_RUN.",
+  "offline_passed": 1358,
+  "offline_skipped": [
+    {
+      "test": "test_gpu_layers_never_ask_for_offload_without_a_cuda_device",
+      "reason": "native llama.cpp unavailable: RuntimeError: Failed to load shared library 'C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\llama_cpp\\lib\\llama.dll': [WinError 4551] Политика управления приложениями заблокировала этот файл"
+    }
+  ],
+  "network_or_live_deselected": 24,
+  "new_regressions": 27,
+  "http_passed": 9,
+  "unchanged": {
+    "TEMPERATURE": true,
+    "MAX_TOKENS": true,
+    "SYSTEM_PROMPT": true,
+    "TOOL_SCHEMAS": true,
+    "LlamaBrain": true,
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_plotter.py": true,
+    "agent_planner.py": true
+  },
+  "language_live": "NOT_RUN",
+  "science_live": "NOT_RUN",
+  "review_protocol": {
+    "new_controls": 4,
+    "unchanged_advisor_messages": 12,
+    "total_messages": 16,
+    "independent_chats": 12
+  },
+  "limits": {
+    "planner_output_tokens": 360,
+    "planner_input_chars_with_schema": 8000,
+    "research_context_chars": 2400,
+    "session_evidence_records": 32
+  },
+  "native_scope": "Upstream standalone Python JSON-schema converter tested; native DLL/GPU inference is not validated on this Windows host."
+}

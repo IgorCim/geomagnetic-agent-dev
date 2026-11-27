@@ -1676,8 +1676,8 @@ def test_gpu_layers_never_ask_for_offload_without_a_cuda_device():
     try:
         from llama_cpp import llama_cpp as _lc
         supports = _lc.llama_supports_gpu_offload()
-    except Exception:
-        pytest.skip("llama-cpp-python not installed")
+    except Exception as exc:
+        pytest.skip(f"native llama.cpp unavailable: {type(exc).__name__}: {exc}")
     resolved = ac._resolve_gpu_layers(-1)
     assert resolved == (-1 if supports else 0)
 

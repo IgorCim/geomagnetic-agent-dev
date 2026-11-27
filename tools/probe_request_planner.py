@@ -101,11 +101,12 @@ def check_route(key, decision, inspection, backend_calls):
                    'fetch_observatory_data','calculate_derived_components'}
         if 'calculate_baseline' not in decision.get('tools', []):
             errors.append('missing calculate_baseline')
-        extra_tools = set(decision.get('tools', [])) - allowed
+        extra_tools = set(decision.get('required_operations',decision.get('tools', []))) - allowed
         if extra_tools:
             errors.append('unrequested operations: ' + ', '.join(sorted(extra_tools)))
-        if decision.get('metrics'):
-            errors.append('unrequested physical metrics: ' + ', '.join(decision['metrics']))
+        required_metrics=decision.get('required_metrics',decision.get('metrics', []))
+        if required_metrics:
+            errors.append('unrequested physical metrics: ' + ', '.join(required_metrics))
         if decision.get('stations') != ['irt'] or decision.get('dates') != ['2024-09-12']:
             errors.append('wrong station/date for baseline comparison')
     return {'expected_mode':expected, 'passed':not errors, 'errors':errors}

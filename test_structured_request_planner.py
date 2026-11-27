@@ -14,7 +14,8 @@ RECORDED = json.loads((ROOT/'tests/fixtures/request_planner_v1_replies.json').re
 
 
 def wire(action='discuss', answer='interpretation', tools=None, metrics=None, stations=None, dates=None, **extra):
-    return dict(action=action,answer=answer,tools=tools or [],metrics=metrics or [],
+    required=list(dict.fromkeys((tools or [])+(metrics or []))) if action=='compute' else []
+    return dict(action=action,answer=answer,tools=tools or [],metrics=metrics or [],required=required,
                 stations=stations or [],dates=dates or [],date_scope='days',**extra)
 
 
@@ -139,7 +140,18 @@ def test_discuss_pipeline_does_not_download_and_returns_scientific_text():
 
 
 def test_llama_json_schema_grammar_compiles_without_model_weights():
-    grammar_module=pytest.importorskip('llama_cpp.llama_grammar')
+    # Upstream's converter is standalone Python. Importing the package root
+    # needlessly loads the native DLL; native generation is a separate live test.
+    import importlib.metadata
+    import importlib.util
+    try:
+        distribution=importlib.metadata.distribution('llama-cpp-python')
+    except importlib.metadata.PackageNotFoundError:
+        pytest.skip('llama-cpp-python schema converter is not installed')
+    path=distribution.locate_file('llama_cpp/llama_grammar.py')
+    spec=importlib.util.spec_from_file_location('_upstream_llama_schema_converter',path)
+    grammar_module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(grammar_module)
     grammar=grammar_module.LlamaGrammar.from_json_schema(json.dumps(rp.ARGUMENT_SCHEMA),verbose=False)
     assert 'root ::=' in grammar._grammar
     assert 'action' in grammar._grammar and 'compute' in grammar._grammar

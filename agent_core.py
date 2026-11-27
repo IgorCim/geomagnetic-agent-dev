@@ -7842,7 +7842,7 @@ def run_agent(
             selected = expand_tools(intent_plan, any(h.startswith(('raw:', 'derived:')) for h in store.names()))
             schema_map = {schema['function']['name']:schema for schema in TOOL_SCHEMAS}
             tools = [schema_map[name] for name in selected if name in schema_map]
-            user_query += "\nТекущая задача (проверенный план): " + _dumps({k:intent_plan[k] for k in ('mode','tools','metrics','stations','dates','date_scope')})
+            user_query += "\nТекущая задача (проверенный план): " + _dumps({k:intent_plan[k] for k in ('mode','tools','metrics','stations','dates','date_scope','required_operations','required_metrics') if k in intent_plan})
             if intent_plan['mode'] in ('analyze','explain'):
                 user_query += "\nОбъясни результаты; числа связывай с input_provenance, датами и количеством строк."
 
@@ -7855,9 +7855,9 @@ def run_agent(
     # many tokens the schemas cost).
     if tools is not None:
         schemas = tools
-        selection = ({'tools':[x['function']['name'] for x in tools], 'metrics':intent_plan['metrics'],
+        selection = ({'tools':[x['function']['name'] for x in tools], 'metrics':intent_plan.get('required_metrics',intent_plan['metrics']),
                        'bulk':False,'est_tokens':prompt_budget(prompt, tools)['est_tokens'],
-                       'space_comparison':'plot_space_weather_comparison' in intent_plan['tools']}
+                       'space_comparison':'plot_space_weather_comparison' in intent_plan.get('required_operations',intent_plan['tools'])}
                      if intent_plan and intent_plan.get('status')=='ok' else None)
     else:
         current_query = routing_query if routing_query is not None else user_query
@@ -7928,7 +7928,14 @@ def run_agent(
         # replaces the previous one instead of accumulating and growing the
         # context window (the schema diet exists precisely to keep it small).
         injection = scratchpad.to_prompt_injection()
-        messages[0] = {"role": "system", "content": f"{prompt}\n\n{injection}"}
+        research = ''
+        if intent_plan and intent_plan.get('mode') in ('analyze','explain','plan'):
+            from research_context import merge, render
+            labels=dict(re.findall(r'([A-Z]{3})=([^,]+)',STATION_HINT))
+            targets={code:labels.get(code.upper()) for code in intent_plan.get('stations',[])}
+            research = "\nResearch evidence and definitions (not extra tasks): " + render(
+                merge(store.conversation.evidence,log),current_query,intent_plan,targets)
+        messages[0] = {"role": "system", "content": f"{prompt}\n\n{injection}{research}"}
         # Injection is unconditional; dumping the complete prompt is opt-in.
         if os.environ.get("GEOMAG_DEBUG_SCRATCHPAD", "0").strip().lower() not in ("", "0", "false", "no"):
             print(f"\n[DEBUG] SCRATCHPAD INJECTION:\n{injection}\n")
