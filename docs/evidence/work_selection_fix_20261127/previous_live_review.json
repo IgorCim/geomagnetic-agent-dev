@@ -1,0 +1,22 @@
+{
+  "tested_revision": "1e716a1",
+  "scope": "Actual real-model results, before the new work-selection fix.",
+  "operator_controls_passed": 1,
+  "operator_controls_total": 4,
+  "new_conversational_tasks_completed": 0,
+  "new_conversational_tasks_total": 3,
+  "planner_accepted": 6,
+  "planner_rejected": 10,
+  "required_contract_rejections": 9,
+  "invented_date_rejections": 1,
+  "scientific_findings": [
+    "SCI-X01 calls H vertical; H is horizontal magnitude.",
+    "ADVISOR-09 still treats absence of 3-sigma outliers as storm absence.",
+    "Analysis of acquired-data continuations is blocked when their setup request was rejected.",
+    "The successful operator check on SCI-X01 does not certify its scientific content."
+  ],
+  "source": "docs/evidence/dual_review_1e716a1_20261127.txt",
+  "source_sha256_normalized_utf8": "6ea001f209a3097b6a839dc4734b8b60172ca4f163c52244e327592ea73d507e",
+  "new_live_language": "NOT_RUN",
+  "new_live_science": "NOT_RUN"
+}

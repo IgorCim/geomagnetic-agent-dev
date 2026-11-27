@@ -13,9 +13,11 @@ ROOT = Path(__file__).resolve().parent
 RECORDED = json.loads((ROOT/'tests/fixtures/request_planner_v1_replies.json').read_text(encoding='utf-8'))
 
 
-def wire(action='discuss', answer='interpretation', tools=None, metrics=None, stations=None, dates=None, **extra):
-    required=list(dict.fromkeys((tools or [])+(metrics or []))) if action=='compute' else []
-    return dict(action=action,answer=answer,tools=tools or [],metrics=metrics or [],required=required,
+def wire(action='discuss', answer='interpretation', tools=None, metrics=None, stations=None, dates=None, required=None, **extra):
+    ids=list(dict.fromkeys((tools or [])+(metrics or [])))
+    mandatory=set(ids if required is None and action=='compute' else required or [])
+    return dict(action=action,answer=answer,
+                work=[{'id':name,'required':name in mandatory} for name in ids],
                 stations=stations or [],dates=dates or [],date_scope='days',**extra)
 
 
@@ -63,7 +65,7 @@ def test_public_modes_remain_compatible(action,answer,mode):
 
 @pytest.mark.parametrize('change',[
  {'action':'explain'},{'answer':'compute'},{'tools':['run_python']},{'tools':'get_statistics'},
- {'metrics':['unknown']},{'reason':'execute this'},{'dates':[None]},
+ {'work':[{'id':'unknown','required':True}]},{'reason':'execute this'},{'dates':[None]},
 ])
 def test_untrusted_structured_arguments_do_not_weaken_validation(change):
     value=wire();value.update(change)
@@ -198,12 +200,11 @@ def test_selected_metric_requires_its_operator_without_mutating_raw_arguments():
 
 def test_maximum_declared_operation_list_still_allows_required_metric_operators():
     tools=['fetch_observatory_data','fetch_solar_wind','fetch_geomagnetic_indices',
-           'calculate_derived_components','get_statistics','calculate_baseline',
-           'calculate_derived_math','plot_components']
+           'get_statistics','calculate_baseline','calculate_derived_math']
     value=wire('compute','interpretation',tools,metrics=['gic','eej_index'])
     result=rp.plan_request(ac.LlamaBrain(Backend(value)),'Выполни согласованный расчёт.','',ac.parse_tool_calls)
     assert result['status']=='ok',result
-    assert len(result['tools'])==10
+    assert len(result['tools'])==8
     assert {'apply_physics_formula','calculate_eej_index'}<=set(result['tools'])
 
 

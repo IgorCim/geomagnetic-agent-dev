@@ -1,0 +1,34 @@
+{
+  "scope": "Offline code/transport regressions plus fixture-based real HTTP, not real Qwen behavior.",
+  "offline_passed": 1381,
+  "skipped": [
+    {
+      "test": "test_gpu_layers_never_ask_for_offload_without_a_cuda_device",
+      "reason": "native llama.cpp unavailable: RuntimeError: Failed to load shared library 'C:\\Users\\User\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\llama_cpp\\lib\\llama.dll': [WinError 4551] Политика управления приложениями заблокировала этот файл"
+    }
+  ],
+  "deselected_network_or_live": 24,
+  "new_recorded_protocol_tests": 23,
+  "http_checks_passed": 9,
+  "unchanged": {
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_plotter.py": true,
+    "agent_planner.py": true,
+    "TEMPERATURE": true,
+    "MAX_TOKENS": true,
+    "SYSTEM_PROMPT": true,
+    "TOOL_SCHEMAS": true,
+    "LlamaBrain": true
+  },
+  "protected_original_unchanged": true,
+  "live_language_after_fix": "NOT_RUN",
+  "live_science_after_fix": "NOT_RUN",
+  "planner_limits": {
+    "system_chars": 3093,
+    "max_output_tokens": 360,
+    "max_input_chars_with_schema": 8000,
+    "max_work_items": 8
+  },
+  "historical_results_preserved": true
+}

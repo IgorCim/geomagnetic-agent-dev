@@ -184,7 +184,7 @@ def test_plan_stage_through_production_llama_adapter():
         def __init__(self):self.calls=[]
         def create_chat_completion(self,**kw):
             self.calls.append(kw)
-            result={'content':json.dumps({'action':'discuss','answer':'interpretation','tools':[],'metrics':[],'required':[],'stations':[],'dates':[],'date_scope':'days'})} if len(self.calls)==1 else {'content':'Критика утверждения.'}
+            result={'content':json.dumps({'action':'discuss','answer':'interpretation','work':[],'stations':[],'dates':[],'date_scope':'days'})} if len(self.calls)==1 else {'content':'Критика утверждения.'}
             return {'choices':[{'message':result}]}
     llm=FakeLlama();brain=ac.LlamaBrain(llm)
     result=ac.run_agent('Объясни различие наблюдения и гипотезы.',brain=brain,verbose=False)

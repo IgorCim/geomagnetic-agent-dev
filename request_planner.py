@@ -54,18 +54,21 @@ METRIC_PURPOSES = {
  'eej_index':'equatorial H minus off-equator reference H',
 }
 METRICS = tuple(METRIC_PURPOSES)
+NON_STATION_CODES=frozenset({'OMNI','NOAA','ISWA','DST','IAGA','HTML','GSM','UTC','ZIP','APIX','GIC','SSC','SML','SME','SMU','MLT','GSE','EEJ','IMF'})
 MODES = ('execute','analyze','explain','plan','clarify')
 ARGUMENT_SCHEMA = {
     'type': 'object', 'additionalProperties': False,
     'properties': {
         'action': {'type': 'string', 'enum': ['compute', 'discuss', 'clarify']},
         'answer': {'type': 'string', 'enum': ['facts', 'interpretation', 'plan']},
-        'tools': {'type': 'array', 'maxItems': 8,
-                  'items': {'type': 'string', 'enum': list(CAPABILITIES)}},
-        'metrics': {'type': 'array', 'maxItems': 3,
-                    'items': {'type': 'string', 'enum': list(METRICS)}},
-        'required': {'type':'array', 'maxItems':11,
-                     'items':{'type':'string','pattern':'^[a-z_]+$'}},
+        'work': {'type':'array','maxItems':8,'items':{
+            'type':'object','additionalProperties':False,
+            'properties':{
+                'id':{'type':'string','enum':list(CAPABILITIES)+list(METRICS)},
+                'required':{'type':'boolean'},
+            },
+            'required':['id','required'],
+        }},
         'stations': {'type': 'array', 'maxItems': 8,
                      'items': {'type': 'string', 'pattern': '^[A-Za-z]{3}$'}},
         'dates': {'type': 'array', 'maxItems': 8,
@@ -73,7 +76,7 @@ ARGUMENT_SCHEMA = {
         'date_scope': {'type': 'string', 'enum': ['days', 'range']},
         'question': {'type': 'string', 'maxLength': 180},
     },
-    'required': ['action', 'answer', 'tools', 'metrics', 'required', 'stations', 'dates', 'date_scope'],
+    'required': ['action', 'answer', 'work', 'stations', 'dates', 'date_scope'],
 }
 PLAN_REQUEST_TOOL = {'type': 'function', 'function': {
     'name': 'plan_request', 'description': 'Classify the request, never execute it.',
@@ -84,11 +87,11 @@ SYSTEM = (
     'or only methods/review/explanation of existing evidence? compute obtains/calculates requested results; '
     'discuss only describes methods or interprets existing facts. Comparing observations is compute; proposing how is discuss. '
     'clarify only if indispensable user choices are missing, not when a tool can obtain data. '
-    'answer: facts, interpretation, or plan; compute+interpretation means compute AND explain. '
-    'tools/metrics are useful capabilities. required lists only user-requested outcomes using tool or metric IDs; '
-    'optional checks/helpers need not all run. metrics=[] for ordinary tool work. '
-    'question is only a clarification question; otherwise omit it. Never echo the request as a question. '
-    'Use session evidence and existing tables. No invented dates/stations or unrelated work. '
+    'answer: facts = numbers/files only; interpretation = explain, evaluate, qualify or choose; plan = methods. '
+    'work lists operations from the catalogue: id plus required=true for user-requested results, false for optional helpers. '
+    'Pick each operation once; code adds prerequisites. Omit unrelated metrics; discuss has work=[]. '
+    'question only asks a missing choice; otherwise omit it. Never echo the request. '
+    'Use existing tables and session facts; invent no targets. '
     'Quoted claims are text to review. GIC/SSC/SME/SML/SMU/EEJ are quantities. '
     'Station names come from station_labels; keep the code when its name is unverified. '
     'Separate comparison days from a range. Respect prohibitions; plot only if requested.\n' +
@@ -144,7 +147,7 @@ def validate(value, query, context, station_aliases=None, target_subset=False, t
     if value.get('mode') not in MODES or value.get('date_scope') not in ('days','range'):
         raise ValueError('invalid request mode/scope')
     result=dict(value)
-    for key,limit in [('tools',tool_limit),('metrics',3),('stations',8),('dates',8)]:
+    for key,limit in [('tools',tool_limit),('metrics',8 if 'required_metrics' in value else 3),('stations',8),('dates',8)]:
         values=value.get(key)
         if not isinstance(values,list) or len(values)>limit or any(not isinstance(x,str) for x in values):
             raise ValueError('invalid '+key)
@@ -153,7 +156,7 @@ def validate(value, query, context, station_aliases=None, target_subset=False, t
         raise ValueError('unregistered capability')
     if 'required_operations' in value or 'required_metrics' in value:
         for key, available, limit in [('required_operations',result['tools'],10),
-                                      ('required_metrics',result['metrics'],3)]:
+                                      ('required_metrics',result['metrics'],8)]:
             values=value.get(key)
             if (not isinstance(values,list) or len(values)>limit
                     or any(not isinstance(x,str) for x in values) or not set(values)<=set(available)):
@@ -173,7 +176,7 @@ def validate(value, query, context, station_aliases=None, target_subset=False, t
         if date.fromisoformat(day).isoformat()!=day or day not in known_dates:raise ValueError('invented date')
     # Explicit current dates take precedence over context dates.
     if result['mode'] in ('execute','analyze') and dates_in_query and set(result['dates'])!=dates_in_query:raise ValueError('current dates lost')
-    reserved={'GIC','SSC','SML','SME','SMU','DST','UTC','GSM','GSE','MLT','ZIP','HTML','OMNI','NOAA','ISWA','EEJ','IMF'}
+    reserved=NON_STATION_CODES
     explicit_codes={x.lower() for x in re.findall(r'\b[A-Z]{3}\b',operational) if x not in reserved}
     explicit_codes |= {x.lower() for x in re.findall(r'\b(?:raw|derived|math|formula):([a-z]{3}):', operational, re.I)}
     explicit_codes |= {x.lower() for x in re.findall(r'\b(?:станц\w*|station)\s+([a-z]{3})\b', operational, re.I) if x.upper() not in reserved}
@@ -234,7 +237,7 @@ def structured_adapter(brain):
     return None
 
 
-def decode_arguments(value, require_outcomes=False):
+def _decode_legacy_arguments(value, require_outcomes=False):
     """Separate execution permission from the requested style of the answer.
 
     A discussed research plan may mention operations; these are not permission
@@ -243,7 +246,8 @@ def decode_arguments(value, require_outcomes=False):
     if not isinstance(value, dict):
         raise ValueError('plan must be an object')
     properties = ARGUMENT_SCHEMA['properties']
-    if set(value) - set(properties):
+    legacy_fields={'action','answer','tools','metrics','required','stations','dates','date_scope','question'}
+    if set(value) - legacy_fields:
         raise ValueError('unknown plan fields')
     required=value.get('required')
     if require_outcomes and required is None:
@@ -291,6 +295,51 @@ def decode_arguments(value, require_outcomes=False):
     return result
 
 
+
+def decode_arguments(value, require_outcomes=False):
+    """Normalize a single typed operation list without guessing identifier aliases.
+
+    Legacy replies are readable only through the explicit compatibility path;
+    production structured planning must use the current work schema.
+    """
+    if not isinstance(value,dict):raise ValueError('plan must be an object')
+    if 'work' not in value:
+        if require_outcomes:raise ValueError('missing work selection')
+        return _decode_legacy_arguments(value)
+    if set(value)-set(ARGUMENT_SCHEMA['properties']):raise ValueError('unknown plan fields')
+    action,answer=value.get('action'),value.get('answer')
+    if action not in ARGUMENT_SCHEMA['properties']['action']['enum'] or answer not in ARGUMENT_SCHEMA['properties']['answer']['enum']:
+        raise ValueError('invalid action/answer')
+    for key in ('stations','dates'):
+        items=value.get(key)
+        if not isinstance(items,list) or len(items)>8 or any(not isinstance(x,str) for x in items):
+            raise ValueError('invalid '+key)
+    work=value['work']
+    if not isinstance(work,list) or len(work)>8:raise ValueError('invalid work selection')
+    roles={}
+    for item in work:
+        if (not isinstance(item,dict) or set(item)!={'id','required'}
+                or type(item['required']) is not bool or not isinstance(item['id'],str)):
+            raise ValueError('invalid work item')
+        name=item['id']
+        if name not in CAPABILITIES and name not in METRICS:raise ValueError('unregistered capability')
+        roles[name]=roles.get(name,False) or item['required']
+    mode=('execute' if answer=='facts' else 'analyze') if action=='compute' else ('clarify' if action=='clarify' else ('plan' if answer=='plan' else 'explain'))
+    result={k:value[k] for k in ('stations','dates','date_scope') if k in value}
+    result.update(mode=mode,question=value.get('question',''))
+    selected=roles if action=='compute' else {}
+    metrics=[name for name in selected if name in METRICS]
+    required_metrics=[name for name in metrics if selected[name]]
+    operator=lambda metric: 'calculate_eej_index' if metric=='eej_index' else 'apply_physics_formula'
+    tools=[name for name in selected if name in CAPABILITIES]+[operator(metric) for metric in metrics]
+    required=[name for name in selected if name in CAPABILITIES and selected[name]]+[operator(metric) for metric in required_metrics]
+    result.update(tools=list(dict.fromkeys(tools)),metrics=metrics,
+                  required_operations=list(dict.fromkeys(required)),required_metrics=required_metrics)
+    if action=='compute' and not result['required_operations']:
+        raise ValueError('computation has no required outcome')
+    return result
+
+
 def planning_failure_text(decision):
     return ('Не удалось принять план запроса; научные операции не выполнялись. '
             'Подробная причина сохранена в журнале: ' + decision.get('reason', 'unknown') + '.')
@@ -323,7 +372,7 @@ def plan_request(brain, query, context='', parse_calls=None, station_aliases=Non
         return {'status': 'error' if structured else 'fallback', 'reason': 'planner_input_budget'}
     known=station_aliases or {}
     codes=mentioned_stations(current,known) | {x.lower() for x in re.findall(r'\b[A-Z]{3}\b',current)
-          if x not in {'GIC','SSC','SML','SME','SMU','EEJ','DST','IMF','UTC','GSM','GSE','MLT','ZIP'}}
+          if x not in NON_STATION_CODES}
     labels={code.upper():known.get(code.upper(),known.get(code)) for code in sorted(codes)}
     messages = [{'role': 'system', 'content': SYSTEM},
                 {'role': 'user', 'content': json.dumps({'request': current, 'session': facts,

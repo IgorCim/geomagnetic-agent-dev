@@ -29,7 +29,7 @@ def reply(name,args):
 def test_optional_metrics_do_not_block_a_real_outlier_result(tmp_path):
     store,h=store_with_data(tmp_path)
     intent=wire('compute','interpretation',['detect_anomalies'],['sq_baseline','gic'],['IRT'],['2024-09-12'])
-    intent['required']=['detect_anomalies']
+    intent['work']=[{**item,'required':item['id']=='detect_anomalies'} for item in intent['work']]
     backend=Backend(intent,reply('detect_anomalies',dict(df_descriptor=h,component='H',sigma_threshold=3)),
                     {'choices':[{'message':{'content':'Порог проверен. Отсутствие выбросов само по себе не исключает бурю.'}}]})
     result=ac.run_agent('Проверь выбросы H IRT за 12 сентября 2024 года при 3 сигма и объясни пределы вывода.',
@@ -46,7 +46,7 @@ def test_optional_metrics_do_not_block_a_real_outlier_result(tmp_path):
 def test_a_joint_request_still_requires_its_named_physical_metric(tmp_path):
     store,h=store_with_data(tmp_path)
     intent=wire('compute','interpretation',['detect_anomalies'],['gic'],['IRT'],['2024-09-12'])
-    intent['required']=['detect_anomalies','gic']
+    intent['work']=[{**item,'required':True} for item in intent['work']]
     decoded=rp.decode_arguments(intent,require_outcomes=True)
     request=store.conversation.prepare('Проверь выбросы H и вычисли GIC-прокси.',store)
     request.apply_intent(decoded)
@@ -63,13 +63,13 @@ def test_a_joint_request_still_requires_its_named_physical_metric(tmp_path):
 
 @pytest.mark.parametrize('required', [['run_python'],['gic'],['plot_components']])
 def test_required_outcome_must_be_in_selected_capabilities(required):
-    value=wire('compute','facts',['get_statistics']);value['required']=required
-    with pytest.raises(ValueError,match='required outcome'):rp.decode_arguments(value,require_outcomes=True)
+    value=wire('compute','facts',['get_statistics']);value['work']=[{'id':required[0]+'_invented','required':True}]
+    with pytest.raises(ValueError,match='unregistered capability'):rp.decode_arguments(value,require_outcomes=True)
 
 
 def test_structured_production_cannot_omit_outcomes_or_echo_a_clarification():
-    value=wire();value.pop('required')
-    with pytest.raises(ValueError,match='missing required'):rp.decode_arguments(value,require_outcomes=True)
+    value=wire();value.pop('work')
+    with pytest.raises(ValueError,match='missing work'):rp.decode_arguments(value,require_outcomes=True)
     value=wire('clarify','interpretation',question='Сделай вывод увереннее.')
     with pytest.raises(ValueError,match='repeats'):
         rp.validate(rp.decode_arguments(value),'Сделай вывод увереннее.','')

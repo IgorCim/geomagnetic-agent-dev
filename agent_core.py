@@ -7757,8 +7757,11 @@ def understand_request(query: str, brain: Any, store: FrameStore, verbose: bool 
     for handle in store.names()[-6:]:
         context += "\n" + _dumps(frame_provenance(store, handle))
     aliases = dict(re.findall(r'([A-Z]{3})=([^,]+)', STATION_HINT))
-    decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases,
-                               delegate_bulk=is_bulk_query(query))
+    try:
+        decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases,
+                                   delegate_bulk=is_bulk_query(query))
+    finally:
+        store.conversation.remember_request(query,aliases)
     if verbose:
         print('[REQUEST PLANNER] ' + _dumps(decision))
     return decision
@@ -7844,7 +7847,7 @@ def run_agent(
             tools = [schema_map[name] for name in selected if name in schema_map]
             user_query += "\nТекущая задача (проверенный план): " + _dumps({k:intent_plan[k] for k in ('mode','tools','metrics','stations','dates','date_scope','required_operations','required_metrics') if k in intent_plan})
             if intent_plan['mode'] in ('analyze','explain'):
-                user_query += "\nОбъясни результаты; числа связывай с input_provenance, датами и количеством строк."
+                user_query += "\nОбъясни результаты, связывая числа с input_provenance, датами и количеством строк. При оценке утверждений отдели подтверждённое от гипотез и того, что не следует из данных; исправленный текст должен сохранять эти различия."
 
     prompt = system_prompt if system_prompt is not None else SYSTEM_PROMPT
     # Never hand a small model all 29 schemas: a free-form question gets the

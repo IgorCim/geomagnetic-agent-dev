@@ -17,7 +17,8 @@ HANDLE = re.compile(r"\b(?:raw|derived|anomalies|anomaly|math|formula|sw|idx):[a
 DATES = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 FRAME_ARGS = {"df_descriptor", "df1", "df2", "ground_df_descriptor", "solar_wind_df_descriptor", "solar_wind_handle"}
 FETCH = {"fetch_observatory_data", "fetch_solar_wind", "fetch_geomagnetic_indices", "fetch_supermag_data"}
-EXCLUDE_CODES = {"OMNI", "NOAA", "ISWA", "DST", "IAGA", "HTML", "GSM", "UTC", "ZIP", "APIX", "GIC", "SSC", "SML", "SME", "SMU", "MLT", "GSE"}
+from request_planner import NON_STATION_CODES
+EXCLUDE_CODES = NON_STATION_CODES
 CALCULATION_TOOLS = {"calculate_derived_components", "calculate_baseline", "calculate_derived_math",
                      "evaluate_custom_formula", "apply_physics_formula", "detect_anomalies", "calculate_eej_index"}
 
@@ -438,6 +439,39 @@ class SessionMemory:
     last_plot: bool = False
     last_inputs: list[str] = field(default_factory=list)
     evidence: list[dict] = field(default_factory=list)
+    requested_targets: list[dict] = field(default_factory=list)
+
+    def remember_request(self, question: str, aliases: dict | None = None) -> None:
+        """Retain grounded user targets, separately from any obtained evidence.
+
+        A failed calculation does not erase the date the user just supplied.
+        No prose, credentials, model-invented target or availability claim is saved.
+        """
+        from request_planner import unquoted, explicit_dates, mentioned_stations
+        text=unquoted(question)
+        handles=list(dict.fromkeys(h.lower() for h in HANDLE.findall(text)))[:4]
+        stations={c.lower() for c in re.findall(r'\b[A-Z]{3}\b',text) if c not in EXCLUDE_CODES}
+        stations|=mentioned_stations(text,aliases)
+        stations|={h.split(':')[1] for h in handles if h.startswith(('raw:','derived:')) and len(h.split(':')[1])==3}
+        try:dates=sorted(explicit_dates(text))[:8]
+        except ValueError:dates=[]
+        item={}
+        if dates:item['dates']=dates
+        if stations:item['stations']=sorted(stations)[:8]
+        if handles:item['handles']=handles
+        if item and (not self.requested_targets or self.requested_targets[-1]!=item):
+            self.requested_targets=(self.requested_targets+[item])[-2:]
+
+    def request_context(self) -> str:
+        if not self.requested_targets:return ''
+        import json
+        selected=list(self.requested_targets)
+        while True:
+            data={'user_requested_targets_not_observations':selected,
+                  'omitted_requests':len(self.requested_targets)-len(selected)}
+            text=json.dumps(data,ensure_ascii=False,separators=(',',':'))
+            if len(text)<=600:return text+'\n'
+            selected=selected[1:]
 
     def record(self, log: list[dict], store: Any) -> None:
         from research_context import merge
@@ -619,7 +653,7 @@ class SessionMemory:
         return request
 
     def context(self) -> str:
-        return ("Подтверждённое состояние сессии (не заменяет вызов статистики):\n"
+        return (self.request_context()+"Подтверждённое состояние сессии (не заменяет вызов статистики):\n"
                 + "Первая успешная таблица: " + str(self.first_data or "не задана") + ". "
                 + "Первые успешные наземные загрузки в порядке получения: " + ", ".join(self.ground[:12])
                 + ". Последние использованные таблицы: " + ", ".join(self.recent) + ".\n"

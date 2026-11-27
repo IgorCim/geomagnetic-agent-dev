@@ -83,7 +83,7 @@ def reference_notes(query, intent):
     if re.search(r'гипотез|коррел|причин|связ|однознач|уверен|формулир|hypothes|caus|correl',q):
         notes.append('Association or visual coincidence is not unique causation. Claim a computed correlation only with a recorded statistical result.')
     if len((intent or {}).get('stations',[]))>1 or re.search(r'абсолютн|средн\w*\s+h\b',q):
-        notes.append('Absolute H contains the background field; comparing station disturbances needs a justified reference and comparable coverage.')
+        notes.append('H is horizontal magnitude hypot(X,Y); Z is vertical. Absolute H includes the background field; compare disturbances with justified references and coverage.')
     return notes[:5]
 
 

@@ -116,8 +116,8 @@ def test_probe_records_three_cases_without_scientific_execution(tmp_path,monkeyp
         def create_chat_completion(self,**kwargs):
             value=values[self.calls];self.calls+=1
             if 'response_format' in kwargs:
-                wire={k:v for k,v in value.items() if k!='mode'}
-                wire['required']=value['tools'] if value['mode'] in ('execute','analyze') else []
+                wire={k:v for k,v in value.items() if k not in ('mode','tools','metrics')}
+                wire['work']=[{'id':name,'required':value['mode'] in ('execute','analyze')} for name in value['tools']+value['metrics']]
                 wire.update(action='compute' if value['mode'] in ('execute','analyze') else 'discuss',
                             answer='plan' if value['mode']=='plan' else 'interpretation')
                 response=transport({'content':json.dumps(wire)})

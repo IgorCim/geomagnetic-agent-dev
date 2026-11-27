@@ -62,7 +62,7 @@ def run(brain):
     import research_context
     if not isinstance(brain,ac.LlamaBrain) or not rp.enabled(brain):
         raise TypeError('Нужен настоящий brain из свежей dev-ветки.')
-    if 'required' not in rp.ARGUMENT_SCHEMA['required']:
+    if 'work' not in rp.ARGUMENT_SCHEMA['properties']:
         raise RuntimeError('Старая версия планировщика. Нужен свежий kernel и dev-checkout; загруженные модули не заменяй.')
     helper=runpy.run_path(str(ROOT/'tools/run_chat_acceptance.py'))
     print('Два критерия: 4 новых контрольных сообщения + 12 исходных научных сообщений.',flush=True)
