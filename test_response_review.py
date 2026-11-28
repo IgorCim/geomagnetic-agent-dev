@@ -267,7 +267,7 @@ def test_alternative_method_requires_a_reference_to_recorded_evidence(tmp_path):
 
 
 @pytest.mark.parametrize('optional',[[],['calculate_baseline']])
-def test_review_schema_compiles_with_the_official_standalone_converter(optional):
+def test_review_schema_converts_with_the_official_standalone_converter(optional):
     import importlib.metadata
     import importlib.util
     try:

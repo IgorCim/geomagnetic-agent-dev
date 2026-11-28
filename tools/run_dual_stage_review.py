@@ -65,6 +65,10 @@ def run(brain):
         raise TypeError('Нужен настоящий brain из свежей dev-ветки.')
     if 'work' not in rp.ARGUMENT_SCHEMA['properties']:
         raise RuntimeError('Старая версия планировщика. Нужен свежий kernel и dev-checkout; загруженные модули не заменяй.')
+    print('Проверяю нативную грамматику итогового разбора; модель и источники ещё не вызываются.',flush=True)
+    native=runpy.run_path(str(ROOT/'tools/check_review_grammar.py'))['run']()
+    if native['status']!='PASS':
+        raise RuntimeError('Нативная грамматика не принята. Прогон 16 сообщений не начат; смотри отчёт native_grammar.')
     helper=runpy.run_path(str(ROOT/'tools/run_chat_acceptance.py'))
     print('Два критерия: 4 новых контрольных сообщения + 12 исходных научных сообщений.',flush=True)
     print('Контроль действий и научная оценка учитываются отдельно; запись не означает PASS.',flush=True)
@@ -77,9 +81,11 @@ def run(brain):
                           'response_review_status':[r['status'] for r in reviews]})
     root=Path(result['run_dir'])
     (root/'dual_review.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (root/'native_review_grammar.json').write_text(json.dumps(native,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     import zipfile
     with zipfile.ZipFile(result['archive'],'a',zipfile.ZIP_DEFLATED) as bundle:
         bundle.write(root/'dual_review.json','dual_review.json')
+        bundle.write(root/'native_review_grammar.json','native_review_grammar.json')
     controls=[row for row in audit if row['operators']['status']!='REVIEW_REQUIRED']
     print('Контроль действий:',sum(row['operators']['status']=='PASS' for row in controls),'/',len(controls),flush=True)
     print('Итоговый разбор: принят JSON',sum(r['response_review_status']==['ok'] for r in audit),'/',len(audit),

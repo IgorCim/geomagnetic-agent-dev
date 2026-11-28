@@ -38,8 +38,10 @@ def schema(optional):
         'complete':{'type':'boolean'},
         'not_needed':{'type':'array','maxItems':8,'items':{'type':'string','enum':list(optional)}},
         'evidence':{'type':'array','maxItems':12,'items':{'type':'integer','minimum':0,'maximum':31}},
-        'text':{'type':'string','maxLength':4000},
-        'remaining':{'type':'array','maxItems':4,'items':{'type':'string','maxLength':180}},
+        # Large bounded strings expand native GBNF repetitions. Lengths are
+        # enforced below; generation remains bounded by MAX_OUTPUT_TOKENS.
+        'text':{'type':'string'},
+        'remaining':{'type':'array','maxItems':4,'items':{'type':'string'}},
     },'required':['style','complete','not_needed','evidence','text','remaining']}
     if not optional:
         result['properties']['not_needed']={'type':'array','maxItems':0,'items':{'type':'string'}}

@@ -33,6 +33,7 @@ def main() -> int:
         'tools/run_dual_stage_review.py',
         'tests/fixtures/request_planner_v1_replies.json', 'tests/fixtures/request_planner_v2_replies.json',
         'tests/fixtures/planner_required_failure_1e716a1.json', 'tests/fixtures/dual_stage_5e46603.json',
+        'tools/check_review_grammar.py', 'tests/fixtures/review_schema_3168e77.json',
         'tests/fixtures/station_registry_snapshot.json',
         'docs/qa/SCIENTIFIC_ADVISOR_CASES.json', 'docs/evidence/scientific_advisor_before.txt',
         'tools/run_prompt_diagnostics.py', 'tools/kaggle_prompt_diagnostics.py',

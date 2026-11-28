@@ -1,0 +1,57 @@
+{
+  "source_revision": "3168e77221def4ffcb78748a135dd52f775306ad",
+  "scope": "Historical review_answer schema before the native-parser fix; not a model answer.",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "style": {
+        "type": "string",
+        "enum": [
+          "facts",
+          "interpretation",
+          "plan"
+        ]
+      },
+      "complete": {
+        "type": "boolean"
+      },
+      "not_needed": {
+        "type": "array",
+        "maxItems": 0,
+        "items": {
+          "type": "string"
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "maxItems": 12,
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        }
+      },
+      "text": {
+        "type": "string",
+        "maxLength": 4000
+      },
+      "remaining": {
+        "type": "array",
+        "maxItems": 4,
+        "items": {
+          "type": "string",
+          "maxLength": 180
+        }
+      }
+    },
+    "required": [
+      "style",
+      "complete",
+      "not_needed",
+      "evidence",
+      "text",
+      "remaining"
+    ]
+  }
+}

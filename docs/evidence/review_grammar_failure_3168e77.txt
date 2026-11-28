@@ -1,0 +1,7 @@
+Источник: фрагмент журнала, присланный пользователем. Это не полный прогон.
+Версия: 3168e77. LANG-01: данные, статистика и график получены; сбой при review_answer.
+
+[REQUEST JSON] max_tokens=900 temperature=0 schema=review_answer
+parse: error parsing grammar: number of rules that are going to be repeated multiplied by the new repetition exceeds sane defaults, please reduce the number of repetitions or rule complexity
+
+boolean ::= ("true" | "false") space

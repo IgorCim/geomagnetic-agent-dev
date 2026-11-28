@@ -1,0 +1,49 @@
+{
+  "base_revision": "3168e77221def4ffcb78748a135dd52f775306ad",
+  "scope": "Native grammar initialization plus offline regression and deterministic HTTP, not live-Qwen scientific acceptance.",
+  "pytest": {
+    "passed": 1439,
+    "failed": 0,
+    "skipped": 0,
+    "deselected": 24,
+    "new_native_and_boundary_cases": 10
+  },
+  "native_grammars": {
+    "passed": 3,
+    "total": 3,
+    "runtime": "0.3.35",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "legacy_rejected_on_this_build": true,
+    "legacy_error": "OSError: exception: stack overflow"
+  },
+  "http": {
+    "passed": 9,
+    "scope": "Real local Gradio HTTP queue; deterministic brain and station loader; not real Qwen or remote service validation."
+  },
+  "unchanged_from_3168e77": {
+    "agent_core.py": true,
+    "chat_session.py": true,
+    "request_planner.py": true,
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_analyzer.py": true,
+    "geomag_plotter.py": true,
+    "project_store.py": true,
+    "agent_planner.py": true,
+    "response_review.review": true,
+    "response_review.inventory": true,
+    "response_review.optional_methods": true,
+    "response_review._redact": true
+  },
+  "protected_original_files_checked": 216,
+  "protected_original_changes": [],
+  "limits_preserved": {
+    "text_chars": 4000,
+    "remaining_item_chars": 180,
+    "max_output_tokens": 900,
+    "max_input_chars_with_schema": 8000
+  },
+  "kaggle_native_check": "Runs automatically before the unchanged 16-message protocol.",
+  "after_fix_live_qwen": "NOT_RUN",
+  "after_fix_scientific_acceptance": "REVIEW_REQUIRED"
+}

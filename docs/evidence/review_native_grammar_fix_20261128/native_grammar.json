@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "scope": "Native grammar parsing without weights, GPU, generation or scientific acceptance.",
+  "historical_schema_revision": "3168e77221def4ffcb78748a135dd52f775306ad",
+  "historical_schema": {
+    "llama_cpp_python": "0.3.35",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scope": "Native grammar initialization and free only; no model loading or sampling.",
+    "accepted": false,
+    "error": "OSError: exception: stack overflow",
+    "returncode": 2,
+    "stderr": ""
+  },
+  "current_schemas": [
+    {
+      "optional_count": 0,
+      "llama_cpp_python": "0.3.35",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "scope": "Native grammar initialization and free only; no model loading or sampling.",
+      "accepted": true,
+      "grammar_bytes": 1326,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "optional_count": 1,
+      "llama_cpp_python": "0.3.35",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "scope": "Native grammar initialization and free only; no model loading or sampling.",
+      "accepted": true,
+      "grammar_bytes": 1592,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "optional_count": 8,
+      "llama_cpp_python": "0.3.35",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "scope": "Native grammar initialization and free only; no model loading or sampling.",
+      "accepted": true,
+      "grammar_bytes": 1819,
+      "returncode": 0,
+      "stderr": ""
+    }
+  ],
+  "legacy_rejected_on_this_build": true
+}
