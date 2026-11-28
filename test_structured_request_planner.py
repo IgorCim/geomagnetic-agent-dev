@@ -21,6 +21,12 @@ def wire(action='discuss', answer='interpretation', tools=None, metrics=None, st
                 stations=stations or [],dates=dates or [],date_scope='days',**extra)
 
 
+def review_reply(text, style='interpretation'):
+    """Explicit fixture for the separate final review; not live inference."""
+    value=dict(style=style,complete=True,not_needed=[],evidence=[],text=text,remaining=[])
+    return {'choices':[{'finish_reason':'stop','message':{'content':json.dumps(value,ensure_ascii=False)}}]}
+
+
 class Backend:
     def __init__(self, value, *replies):
         message={'content':json.dumps(value)}
@@ -112,7 +118,7 @@ def test_compute_pipeline_uses_real_baseline_and_retains_requested_explanation()
     store=ac.FrameStore();h=seed(store,day='2024-09-12')
     backend=Backend(wire('compute','interpretation',['calculate_baseline'],stations=['IRT'],dates=['2024-09-12']),
                     {'choices':[{'message':native('calculate_baseline',dict(df_descriptor=h,component='H',mode='full'))}]},
-                    {'choices':[{'message':{'content':'Опорный уровень 5 nT; выбор окна требует проверки.'}}]})
+                    {'choices':[{'message':{'content':'Опорный уровень 5 nT; выбор окна требует проверки.'}}]}, review_reply('Опорный уровень 5 nT; выбор окна требует проверки.', 'interpretation'))
     result=ac.run_agent('Получи опорный уровень H IRT за 12 сентября 2024 и объясни выбор.',brain=ac.LlamaBrain(backend),store=store,verbose=False)
     assert result['ok'],result
     assert result['tool_calls'][0]['calculation']['baseline']==5
@@ -134,7 +140,7 @@ def test_gradio_does_not_execute_after_structured_parse_failure(monkeypatch):
 
 def test_discuss_pipeline_does_not_download_and_returns_scientific_text():
     backend=Backend(wire('discuss','interpretation',['fetch_observatory_data'],['gic']),
-                    {'choices':[{'message':{'content':'Отсутствие выбросов не доказывает отсутствие бури.'}}]})
+                    {'choices':[{'message':{'content':'Отсутствие выбросов не доказывает отсутствие бури.'}}]}, review_reply('Отсутствие выбросов не доказывает отсутствие бури.', 'interpretation'))
     result=ac.run_agent('Оцени абзац о GIC и выбросах.',brain=ac.LlamaBrain(backend),verbose=False)
     assert result['ok'] and result['tool_calls']==[]
     assert backend.calls[1]['tools']==[]
@@ -180,7 +186,7 @@ def test_discussed_large_plan_does_not_enter_bulk_executor(monkeypatch):
     assert ac.is_bulk_query(query)
     monkeypatch.setattr(ga,'run_agent_with_planner',lambda *a,**k:pytest.fail('Unrequested execution'))
     backend=Backend(wire('discuss','plan',['create_task_matrix']),
-                    {'choices':[{'message':{'content':'Сначала согласуем интервалы и показатели.'}}]})
+                    {'choices':[{'message':{'content':'Сначала согласуем интервалы и показатели.'}}]}, review_reply('Сначала согласуем интервалы и показатели.', 'plan'))
     result=ga.make_chat_handler(ac.LlamaBrain(backend))(query,[],[],ac.FrameStore())
     messages,_,_,_,_,_=ga.split_result(result)
     assert messages[-1]['content'].startswith('Сначала согласуем')

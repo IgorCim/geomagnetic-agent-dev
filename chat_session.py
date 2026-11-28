@@ -70,6 +70,26 @@ def chart_source_pairs(paths) -> set[tuple[str, str]]:
     return pairs
 
 
+def component_identity(store: Any, handle: str, component: str) -> tuple | None:
+    """Bind a reference to immutable input content, not a reusable slot name."""
+    import hashlib
+    import numpy as np
+    import pandas as pd
+    import geomag_math as gm
+    frame = store.get(handle)
+    canonical = store.aliases().get(handle.lower(), handle.lower())
+    parts = canonical.split(':')
+    if frame is None or len(parts) != 3 or 'timestamp' not in frame:
+        return None
+    series = gm.component_series(frame, component)
+    if gm.is_error(series):return None
+    values = np.asarray(series, dtype='<f8').copy()
+    values[np.isnan(values)] = np.nan
+    times = pd.to_datetime(frame['timestamp'], utc=True, errors='coerce').astype('int64').to_numpy(dtype='<i8')
+    digest = hashlib.sha256(times.tobytes() + values.tobytes()).hexdigest()
+    return (parts[1], parts[2], component.upper(), len(frame), digest)
+
+
 @dataclass
 class Request:
     query: str
@@ -90,6 +110,8 @@ class Request:
     requested_metric: str | None = None
     baseline_mode: str | None = None
     observed_baselines: dict = field(default_factory=dict)
+    baseline_inputs: dict = field(default_factory=dict)
+    waived_methods: tuple[str, ...] = ()
     requested_formula: str | None = None
     baseline_hours: tuple[int, int] | None = None
     no_derive: bool = False
@@ -130,7 +152,7 @@ class Request:
         return not interpretation and any(
             e.get("tool") in CALCULATION_TOOLS or e.get("tool") == "get_statistics" for e in log)
 
-    def observe_result(self, name: str, args: dict, payload: Any) -> None:
+    def observe_result(self, name: str, args: dict, payload: Any, store: Any = None) -> None:
         # Only a successful computation from a bound input establishes lineage.
         # Existing same-day slots and model claims are not evidence of provenance.
         if name in CALCULATION_TOOLS and isinstance(payload, dict) and not payload.get('error'):
@@ -146,6 +168,8 @@ class Request:
             values = self.observed_baselines.setdefault(key, [])
             if payload["baseline"] not in values:
                 values.append(payload["baseline"])
+            if store is not None:
+                self.baseline_inputs[(key, float(payload['baseline']))] = component_identity(store, key[0], key[1])
 
     def bound_statistics_args(self, store: Any) -> dict | None:
         """Resolve only a simple complete request against existing tables.
@@ -264,7 +288,15 @@ class Request:
         if (name == "calculate_derived_math" and str(args.get("metric")).lower() == "anomaly"
                 and "calculate_baseline" in self.calculation_tools):
             key = (str(args.get("df_descriptor", "")).lower(), str(args.get("component") or "H").upper())
-            baselines = self.observed_baselines.get(key, [])
+            identity = component_identity(store, key[0], key[1])
+            baselines = []
+            for source, values in self.observed_baselines.items():
+                for value in values:
+                    saved = self.baseline_inputs.get((source, float(value)))
+                    # A derived slot is equivalent only for this exact component
+                    # and timestamps. Same station/date alone never establishes it.
+                    if (source == key and (saved is None or saved == identity)) or (identity is not None and saved == identity):
+                        baselines.append(value)
             try:
                 actual = float(args.get("baseline_value"))
                 matches = math.isfinite(actual) and any(
@@ -336,12 +368,14 @@ class Request:
             if absent:
                 missing.append(f'включить в архив графики запрошенных пар: {sorted(absent)}')
         for tool in self.required_operations:
+            if tool in self.waived_methods:continue
             if tool not in self.calculation_tools and not any(e.get('ok') and e.get('tool') == tool for e in log):
                 missing.append(f'выполнить {tool} и получить фактический результат')
         for metric in (self.intent or {}).get('required_metrics', []):
             if not any(e.get('ok') and (e.get('calculation') or {}).get('metric')==metric for e in log):
                 missing.append(f'вычислить запрошенную физическую метрику {metric}')
         for tool in self.calculation_tools:
+            if tool in self.waived_methods:continue
             if not any(e.get("ok") and e.get("tool") == tool and e.get("calculation") for e in log):
                 missing.append(f"выполнить {tool} и получить фактический результат")
         if self.wants_local_time and not any(e.get("ok") and e.get("tool") == "calculate_local_time" for e in log):

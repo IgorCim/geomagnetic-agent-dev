@@ -77,7 +77,7 @@ def reference_notes(query, intent):
     if 'fetch_geomagnetic_indices' in tools or re.search(r'\bkp\b|геомагнитн\w*\s+индекс',q):
         notes.append('Kp is a planetary geomagnetic activity index; K is a local station index.')
     if tools&{'calculate_baseline','calculate_derived_math'} or re.search(r'опорн|baseline|ноч|utc',q):
-        notes.append('Changing constant H0 shifts H-H0; max-min is unchanged. A UTC window is not automatically local or quiet night.')
+        notes.append('Changing constant H0 shifts H-H0; max-min is unchanged. mode=night only labels a UTC window, not verified local or quiet night. A full-day mean can include disturbance; neither reference is automatically quiet.')
     if re.search(r'gic|ампер|ток|dh.?dt|скорост[ьи].*измен',q):
         notes.append('dH/dt has nT/min units; currents in amperes need an additional geoelectric/conductivity/network model.')
     if re.search(r'гипотез|коррел|причин|связ|однознач|уверен|формулир|hypothes|caus|correl',q):

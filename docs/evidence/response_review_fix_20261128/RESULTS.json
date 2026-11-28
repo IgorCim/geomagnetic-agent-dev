@@ -1,0 +1,57 @@
+{
+  "scope": "Offline mechanism regression and deterministic Gradio HTTP; not live-Qwen scientific acceptance.",
+  "base_revision": "5e46603",
+  "tested_source": "Exact input SHA256 is in run.json; tests ran on the changed worktree before commit.",
+  "pytest": {
+    "passed": 1429,
+    "skipped": 0,
+    "failed": 0,
+    "deselected": 24,
+    "new_response_review_cases": 47
+  },
+  "http": {
+    "passed": 9,
+    "status": "PASS",
+    "scope": "Real local Gradio HTTP queue; deterministic brain and station loader; not real Qwen or remote service validation."
+  },
+  "invariants": {
+    "unchanged_from_5e46603": {
+      "SYSTEM_PROMPT": true,
+      "TOOL_SCHEMAS": true,
+      "LlamaBrain": true,
+      "TEMPERATURE": true,
+      "MAX_TOKENS": true,
+      "physics_engine.py": true,
+      "geomag_math.py": true,
+      "geomag_analyzer.py": true,
+      "geomag_plotter.py": true,
+      "project_store.py": true,
+      "agent_planner.py": true
+    },
+    "protected_original_files_checked": 216,
+    "protected_original_changes": []
+  },
+  "budgets": {
+    "planner_system_chars": 3046,
+    "planner_input_chars_with_schema": 8000,
+    "planner_output_tokens": 360,
+    "review_system_chars": 1151,
+    "review_input_chars_with_schema": 8000,
+    "review_output_tokens": 900,
+    "extra_final_calls_per_normal_structured_completion": 1
+  },
+  "historical_live": {
+    "revision": "5e46603",
+    "accepted_plans": 16,
+    "messages": 16,
+    "operator_controls_passed": 3,
+    "operator_controls_total": 4,
+    "science": "NOT_PASSED"
+  },
+  "after_fix_live_qwen": "NOT_RUN",
+  "after_fix_science": "REVIEW_REQUIRED",
+  "sources": [
+    "../dual_review_5e46603_20261128.txt",
+    "../../../tests/fixtures/dual_stage_5e46603.json"
+  ]
+}

@@ -4867,7 +4867,7 @@ def _handle_baseline(args: dict[str, Any], store: FrameStore) -> tuple[Any, str]
     if payload.get("baseline") is None:
         note = " No finite sample fell inside the window, so there is no baseline."
     return payload, (
-        f"Quiet {mode} baseline for {component} is {payload.get('baseline')} "
+        f"Reference ({mode}) baseline for {component} is {payload.get('baseline')} "
         f"{payload.get('unit')}.{note}"
     )
 
@@ -7759,7 +7759,9 @@ def understand_request(query: str, brain: Any, store: FrameStore, verbose: bool 
     aliases = dict(re.findall(r'([A-Z]{3})=([^,]+)', STATION_HINT))
     try:
         decision = rp.plan_request(brain, query, context, parse_tool_calls, station_aliases=aliases,
-                                   delegate_bulk=is_bulk_query(query))
+                                   delegate_bulk=is_bulk_query(query),
+                                   source_access={'supermag_logon_configured':bool(getattr(store,'supermag_logon',None) or os.environ.get('SUPERMAG_LOGON','').strip())},
+                                   private_values=(getattr(store,'supermag_logon',None),))
     finally:
         store.conversation.remember_request(query,aliases)
     if verbose:
@@ -7969,12 +7971,13 @@ def run_agent(
                             "Не объявляй несуществующие результаты готовыми."
                         )})
                         continue
-                    return {
-                        "ok": False, "error": "request_incomplete", "stop_reason": "request_incomplete",
-                        "text": _with_tool_failures("Запрос выполнен не полностью. Не выполнено: "
-                            + "; ".join(missing) + ".\n" + contract.facts(log, store), log),
-                        "plots": plots, "tool_calls": log, "rounds": round_no,
-                    }
+                    if not (intent_plan and intent_plan.get('transport') == 'json_schema'):
+                        return {
+                            "ok": False, "error": "request_incomplete", "stop_reason": "request_incomplete",
+                            "text": _with_tool_failures("Запрос выполнен не полностью. Не выполнено: "
+                                + "; ".join(missing) + ".\n" + contract.facts(log, store), log),
+                            "plots": plots, "tool_calls": log, "rounds": round_no,
+                        }
             # Filenames in prose are not artifacts. Require the actual
             # decisive plotting call before accepting this comparison.
             if needs_space_plot and not any(
@@ -8069,7 +8072,44 @@ def run_agent(
                     ),
                 }
 
-            text = contract.facts(log, store) if contract is not None and contract.should_use_facts(log) else leftover.strip() or content.strip()
+            draft_text = leftover.strip() or content.strip()
+            from response_review import review as review_response
+            response_review = review_response(brain, current_query, store, log, intent_plan,
+                                               contract, contract.missing(log, store) if contract else ())
+            if response_review is not None:
+                if verbose:
+                    print('[RESPONSE REVIEW] ' + _dumps(response_review))
+                facts = contract.facts(log, store) if contract is not None else ''
+                if response_review['status'] != 'ok':
+                    return {'ok': False, 'error': 'response_review_failed', 'stop_reason': 'response_review_failed',
+                            'text': _with_tool_failures('Не удалось подготовить проверяемый итоговый разбор. '
+                                'Подтверждённые результаты сохранены.\n' + facts, log),
+                            'plots': plots, 'tool_calls': log, 'rounds': round_no,
+                            'request_plan': intent_plan, 'response_review': response_review, 'draft_text': draft_text}
+                if contract is not None:
+                    contract.waived_methods = tuple(response_review['not_needed'])
+                missing = contract.missing(log, store) if contract else []
+                complete = response_review['complete'] and not missing
+                text = facts if response_review['style'] == 'facts' else response_review['text'].strip()
+                if response_review['style'] != 'facts' and any(e.get('ok') for e in log) and facts:
+                    text += '\n\n' + facts
+                if not complete:
+                    reasons = list(dict.fromkeys(missing + response_review['remaining']))
+                    text = 'Запрос выполнен не полностью. Не выполнено: ' + '; '.join(reasons) + '.\n' + text
+                else:
+                    for entry in log:
+                        if not entry.get('ok') and entry.get('tool') in response_review['not_needed']:
+                            entry['not_required_for_result'] = True
+                return {'ok': complete, 'error': None if complete else 'request_incomplete',
+                        'text': _with_tool_failures(text, log), 'plots': plots, 'tool_calls': log,
+                        'rounds': round_no, 'stop_reason': stop_reason if complete else 'request_incomplete',
+                        'request_plan': intent_plan, 'response_review': response_review, 'draft_text': draft_text}
+            if contract is not None and contract.missing(log, store):
+                return {'ok': False, 'error': 'request_incomplete', 'stop_reason': 'request_incomplete',
+                        'text': _with_tool_failures('Запрос выполнен не полностью. Не выполнено: '
+                            + '; '.join(contract.missing(log, store)) + '.\n' + contract.facts(log, store), log),
+                        'plots': plots, 'tool_calls': log, 'rounds': round_no, 'request_plan': intent_plan}
+            text = contract.facts(log, store) if contract is not None and contract.should_use_facts(log) else draft_text
             if verbose:
                 print(f"[agent] round {round_no}: final answer ({len(text)} chars)")
             return {
@@ -8163,6 +8203,8 @@ def run_agent(
         for call in calls:
             name, args = call["name"], call["arguments"]
             entry: dict[str, Any] = {"round": round_no, "tool": name, "arguments": args}
+            if intent_plan and intent_plan.get('transport') == 'json_schema' and name in PLOT_TOOLS and contract is not None:
+                entry['required_by_plan'] = contract.wants_plot
             note = ""
 
             if call.get("malformed") or not name:
@@ -8256,7 +8298,7 @@ def run_agent(
                 from chat_session import capture_calculation
                 capture_calculation(entry, name, payload)
                 if contract is not None:
-                    contract.observe_result(name, args, payload)
+                    contract.observe_result(name, args, payload, store)
                 if name == "calculate_local_time" and isinstance(payload, dict):
                     entry["local_time"] = {k: payload[k] for k in ("lt_hm", "local_mean_solar_datetime", "longitude", "model")}
                 entry["resolved_handles"] = list(dict.fromkeys(
@@ -8878,6 +8920,7 @@ def _with_plot_tally(text: str, log: list[dict[str, Any]]) -> str:
     requested = _unique([
         aliases.get(_attempted_plot_name(entry), _attempted_plot_name(entry))
         for entry in log if entry.get("tool") in PLOT_TOOLS
+        and (entry.get("ok") or entry.get("required_by_plan") is not False)
     ])
     if not built and not requested:
         return text
@@ -8917,7 +8960,7 @@ def _failure_entries(log: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         e
         for e in log
-        if not e.get("ok", True)
+        if not e.get("ok", True) and not e.get("not_required_for_result")
         and e.get("error")
         and e.get("tool") != "(refused)"
     ]

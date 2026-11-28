@@ -52,6 +52,7 @@ def assess_operators(turn):
         if not turn.get('answer','').strip():errors.append('missing review text')
     else:return {'status':'REVIEW_REQUIRED','scope':'Original scientific task; evaluate final answer and evidence manually.'}
     if not results:errors.append('no engine result recorded')
+    elif results[-1].get('ok') is False:errors.append('final engine result is incomplete or failed')
     return {'status':'FAIL' if errors else 'PASS','errors':errors,
             'scope':'Operator checks only; final claims and scientific reasoning require review.'}
 
@@ -71,7 +72,9 @@ def run(brain):
     audit=[]
     for phase in result['report']['phases']:
         for turn in phase['turns']:
-            audit.append({'id':turn['id'],'operators':assess_operators(turn),'science':'REVIEW_REQUIRED'})
+            reviews=[e.get('result',{}).get('response_review') for e in turn.get('engine_results',[]) if e.get('result',{}).get('response_review')]
+            audit.append({'id':turn['id'],'operators':assess_operators(turn),'science':'REVIEW_REQUIRED',
+                          'response_review_status':[r['status'] for r in reviews]})
     root=Path(result['run_dir'])
     (root/'dual_review.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     import zipfile
@@ -79,5 +82,7 @@ def run(brain):
         bundle.write(root/'dual_review.json','dual_review.json')
     controls=[row for row in audit if row['operators']['status']!='REVIEW_REQUIRED']
     print('Контроль действий:',sum(row['operators']['status']=='PASS' for row in controls),'/',len(controls),flush=True)
+    print('Итоговый разбор: принят JSON',sum(r['response_review_status']==['ok'] for r in audit),'/',len(audit),
+          '(не оценка научной правильности).',flush=True)
     print('Научные выводы: REVIEW_REQUIRED. Присылай полный лог и ZIP.',flush=True)
     return result

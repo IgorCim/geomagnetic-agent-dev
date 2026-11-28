@@ -1,0 +1,487 @@
+{
+  "source": "docs/evidence/dual_review_5e46603_20261128.txt",
+  "revision": "5e46603",
+  "scope": "Actual user-supplied live log; historical failures, not a new model run.",
+  "cases": [
+    {
+      "id": "LANG-01",
+      "chat": "language_reuse",
+      "prompt": "Возьми минутные измерения Иркутска за 10 сентября 2024 года. Мне нужны минимум, максимум и медиана H, плюс один график H.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Возьми минутные измерения Иркутска за 10 сентября 2024 года. Мне нужны минимум, максимум и медиана H, плюс один график H.",
+        "tools": [
+          "fetch_observatory_data",
+          "get_statistics",
+          "calculate_derived_math",
+          "plot_components"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `derived:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-10'.\n- calculate_derived_components:\n  computed: ['H'].\n  definitions: {'H': 'hypot(X,Y); nT', 'D': 'degrees(atan2(Y,X)); deg', 'I': 'degrees(atan2(Z,hypot(X,Y))); deg'}.\n- H: минимум: 18236.66, максимум: 18329.45, среднее: 18291.09, медиана: 18301.7, стандартное отклонение: 21.99, число значений: 1440, пропуски: 0; единицы: nT.\n- График: `h_irt_2024-09-10_INTERMAGNET.html`.\n\nПостроено графиков: 1.\nФайлы: h_irt_2024-09-10_INTERMAGNET.html"
+    },
+    {
+      "id": "LANG-02",
+      "chat": "language_reuse",
+      "prompt": "Данные оставь те же. Теперь нужны минимум, максимум и медиана Y. Повторно ничего не скачивай; новый график не нужен.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Данные оставь те же. Теперь нужны минимум, максимум и медиана Y. Повторно ничего не скачивай; новый график не нужен.",
+        "tools": [
+          "get_statistics"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "get_statistics"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- get_statistics: Statistics — Y[min -1498.0, max -1414.1, mean -1461.71, med -1464.15, sd 20.2 nT].\n- Y: минимум: -1498.0, максимум: -1414.1, среднее: -1461.71, медиана: -1464.15, стандартное отклонение: 20.2, число значений: 1440, пропуски: 0; единицы: nT."
+    },
+    {
+      "id": "LANG-03",
+      "chat": "language_two_stations",
+      "prompt": "Хочу сопоставить H в IRT и BOU за 10 сентября 2024 года. Дай среднее H и число пропусков отдельно для каждой станции. Сохрани принадлежность чисел станции и дате.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "bou",
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Хочу сопоставить H в IRT и BOU за 10 сентября 2024 года. Дай среднее H и число пропусков отдельно для каждой станции. Сохрани принадлежность чисел станции и дате.",
+        "tools": [
+          "fetch_supermag_data",
+          "get_statistics",
+          "calculate_baseline"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_supermag_data",
+          "get_statistics",
+          "calculate_baseline"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Запрос выполнен не полностью. Не выполнено: выполнить fetch_supermag_data и получить фактический результат.\nПодтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `raw:bou:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- get_statistics: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 18236.66, max 18329.45, mean 18291.09, med 18301.7, sd 21.99 nT].\n- H: минимум: 18236.66, максимум: 18329.45, среднее: 18291.09, медиана: 18301.7, стандартное отклонение: 21.99, число значений: 1440, пропуски: 0; единицы: nT.\n- get_statistics: [{\"handle\": \"raw:bou:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 20651.88, max 20714.9, mean 20698.05, med 20707.52, sd 18.04 nT].\n- H: минимум: 20651.88, максимум: 20714.9, среднее: 20698.05, медиана: 20707.52, стандартное отклонение: 18.04, число значений: 1438, пропуски: 2; единицы: nT.\n- get_statistics: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 18236.66, max 18329.45, mean 18291.09, med 18301.7, sd 21.99 nT].\n- get_statistics: [{\"handle\": \"raw:bou:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 20651.88, max 20714.9, mean 20698.05, med 20707.52, sd 18.04 nT].\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Quiet night baseline for H is 18260.928843530255 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18260.928843530255.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:bou:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Quiet night baseline for H is 20704.680229199355 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 20704.680229199355.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- get_statistics: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 18236.66, max 18329.45, mean 18291.09, med 18301.7, sd 21.99 nT].\n- get_statistics: [{\"handle\": \"raw:bou:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — H[min 20651.88, max 20714.9, mean 20698.05, med 20707.52, sd 18.04 nT].\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Quiet night baseline for H is 18260.928843530255 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18260.928843530255.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:bou:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Quiet night baseline for H is 20704.680229199355 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 20704.680229199355.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT."
+    },
+    {
+      "id": "SCI-X01",
+      "chat": "science_units_holdout",
+      "prompt": "Разбери рассуждение коллеги: «Средняя H в одном городе больше, значит буря там сильнее. Скорость изменения H равна 30 нТ/мин, значит по проводам течёт ток 30 ампер». Какие выводы допустимы и какой информации не хватает? Это разбор текста; новые наблюдения не загружай.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [],
+        "dates": [],
+        "date_scope": "range",
+        "mode": "explain",
+        "question": "Разбери рассуждение коллеги: «Средняя H в одном городе больше, значит буря там сильнее. Скорость изменения H равна 30 нТ/мин, значит по проводам течёт ток 30 ампер». Какие выводы и",
+        "tools": [],
+        "metrics": [],
+        "required_operations": [],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Рассуждение коллеги содержит несколько ошибок и недоразумений. Давайте разберем его по частям:\n\n1. **Средняя H в одном городе больше, значит буря там сильнее.**\n   - **Выводы, которые допустимы:**\n     - Если среднее значение H (горизонтальная компонента магнитного поля) выше в одном городе, это может указывать на более сильное магнитное воздействие в этом регионе.\n   - **Информации, которая не хватает:**\n     - Необходимо знать, какая именно средняя H рассматривается (например, за какой период времени) и как она сравнивается с нормальными значениями для данного региона.\n     - Сравнение средних значений H между разными городами требует учета географических и геомагнитных особенностей каждого региона.\n\n2. **Скорость изменения H равна 30 нТ/мин, значит по проводам течёт ток 30 ампер.**\n   - **Выводы, которые допустимы:**\n     - Скорость изменения H (dH/dt) может быть связана с индуцированными токами в проводах, но эта связь не так проста, как предполагает коллега.\n   - **Информации, которая не хватает:**\n     - Для определения тока, индуцированного изменением магнитного поля, необходимо знать дополнительные параметры, такие как сопротивление сети, геоэлектрическая модель региона и т.д.\n     - Прямое соотношение между dH/dt и током в проводах не является корректным без учета этих дополнительных факторов.\n\n**Итоговый текст с разграничением подтверждённого и гипотез:**\n\n\"Средняя H в одном городе больше, значит буря там сильнее. Однако, для точной оценки необходимо учитывать географические и геомагнитные особенности региона. Скорость изменения H равна 30 нТ/мин, что может указывать на наличие индуцированных токов в проводах, но для точного определения тока требуется дополнительная информация, такая как сопротивление сети и геоэлектрическая модель региона.\""
+    },
+    {
+      "id": "ADVISOR-01",
+      "chat": "01_research_plan",
+      "prompt": "Мне нужно проверить, отличалась ли геомагнитная активность 10 и 12 сентября 2024 года. Доступны наблюдения IRT и BOU, солнечный ветер и геомагнитные индексы.\n\nПредложи минимальный убедительный план исследования. Пока ничего не загружай. Объясни, какие показатели выберешь, какие альтернативные объяснения проверишь и какого результата будет недостаточно для вывода.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "bou",
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10",
+          "2024-09-12"
+        ],
+        "date_scope": "range",
+        "mode": "plan",
+        "question": "Мне нужно проверить, отличалась ли геомагнитная активность 10 и 12 сентября 2024 года. Доступны наблюдения IRT и BOU, солнечный ветер и геомагнитные индексы.",
+        "tools": [],
+        "metrics": [],
+        "required_operations": [],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Для проверки отличия геомагнитной активности между 10 и 12 сентября 2024 года, можно использовать следующий план исследования:\n\n1. **Выбор показателей:**\n   - **H-компонента:** Это горизонтальная компонента магнитного поля, которая часто используется для оценки геомагнитной активности.\n   - **Kp-индекс:** Глобальный индекс геомагнитной активности, который отражает общую активность магнитосферы.\n\n2. **Альтернативные объяснения:**\n   - **Солнечный ветер:** Проверить, не было ли значительных изменений в солнечном ветре между этими датами, что могло бы повлиять на геомагнитную активность.\n   - **Геомагнитные индексы:** Проверить, не было ли значительных изменений в других геомагнитных индексах, таких как Dst, что также могло бы повлиять на активность.\n\n3. **Требуемые операции:**\n   - **Сбор данных:** Получить данные о H-компоненте и Kp-индексе для станций IRT и BOU.\n   - **Анализ данных:** Выполнить статистический анализ данных для определения различий между датами.\n   - **Визуализация данных:** Построить графики для визуального сравнения активности между датами.\n\n4. **Требуемые метрики:**\n   - **H-компонента:** Среднее значение H-компонента для каждой даты.\n   - **Kp-индекс:** Среднее значение Kp-индекса для каждой даты.\n   - **Солнечный ветер:** Среднее значение скорости солнечного ветра и магнитного поля Bz для каждой даты.\n\n5. **Минимальный убедительный результат:**\n   - **Различия в данных:** Если различия между значениями H-компонента и Kp-индекса на 10 и 12 сентября будут статистически значимыми, это будет достаточным для вывода о различии активности.\n   - **Отсутствие значительных изменений в солнечном ветре:** Если значительных изменений в солнечном ветре не будет, это будет дополнительным подтверждением, что различия в активности связаны с другими факторами, а не с солнечным ветром.\n\nЕсли различия между значениями H-компонента и Kp-индекса не будут статистически значимыми, или если будут значительные изменения в солнечном ветре, это будет недостаточным для вывода о различии активности."
+    },
+    {
+      "id": "ADVISOR-02",
+      "chat": "02_days",
+      "prompt": "Проверь по реальным данным, какой день был более возмущённым: 10 или 12 сентября 2024 года. Используй IRT и официальные индексы Kyoto.\n\nСам выбери доступные показатели и объясни свой выбор. Мне нужен обоснованный вывод, а не только графики и перечень чисел. Если разные показатели дают разную картину, объясни это.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10",
+          "2024-09-12"
+        ],
+        "date_scope": "range",
+        "mode": "execute",
+        "question": "Какой день был более возмущённым: 10 или 12 сентября 2024 года? Используй IRT и официальные индексы Kyoto.",
+        "tools": [
+          "fetch_observatory_data",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics",
+          "calculate_baseline",
+          "detect_anomalies",
+          "apply_physics_formula"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics",
+          "calculate_baseline",
+          "detect_anomalies",
+          "apply_physics_formula"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Запрос выполнен не полностью. Не выполнено: выполнить evaluate_custom_formula и получить фактический результат.\nПодтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `raw:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `idx:kyoto:2024-09-10`: 72 строк.\n  Источник: WDC for Geomagnetism, Kyoto (HAPI).\n  Datasets: {'Dst': 'hour_dst', 'Kp': 'hour3h_kp'}.\n  Метаданные: Hourly axis; Kp (3-hourly) broadcast over its window..\n  Временное покрытие: 2024-09-10 00:00:00+00:00 … 2024-09-12 23:00:00+00:00; время загрузчиков — UTC.\n  Dst — nT, исходный шаг 1 час; Kp — безразмерный, исходный шаг 3 часа; часовая таблица не означает часовые измерения Kp.\n- `math:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `math:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `anomaly:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `anomaly:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `anomalies:irt:2024-09-10`: 0 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n- `anomalies:irt:2024-09-12`: 0 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n- `derived:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `derived:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-10'.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-12'.\n- fetch_geomagnetic_indices: Индексы Dst/Kp: 72 строк (2024-09-10..2024-09-12) -> 'idx:kyoto:2024-09-10'.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: H variation over 1440-sample windows: max 92.8, mean 92.8 -> handle 'math:irt:2024-09-10'.\n- calculate_derived_math:\n  metric: delta.\n  component: H.\n  window: 1440.\n  max_delta: 92.8.\n  mean_delta: 92.8.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H variation over 1440-sample windows: max 185.06, mean 185.06 -> handle 'math:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: delta.\n  component: H.\n  window: 1440.\n  max_delta: 185.06.\n  mean_delta: 185.06.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Quiet night baseline for H is 18260.928843530255 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18260.928843530255.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet night baseline for H is 18265.270791634288 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18265.270791634288.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: H minus the baseline 18260.93 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-10'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18260.93.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18265.27 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18265.27.\n  unit: nT.\n- get_statistics: [{\"handle\": \"anomaly:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Statistics — ANOMALY[min -24.27, max 68.52, mean 30.16, med 40.77, sd 21.99].\n- ANOMALY: минимум: -24.27, максимум: 68.52, среднее: 30.16, медиана: 40.77, стандартное отклонение: 21.99, число значений: 1440, пропуски: 0; единицы: не указаны.\n- get_statistics: [{\"handle\": \"anomaly:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Statistics — ANOMALY[min -117.34, max 67.72, mean -21.09, med -16.8, sd 40.63].\n- ANOMALY: минимум: -117.34, максимум: 67.72, среднее: -21.09, медиана: -16.8, стандартное отклонение: 40.63, число значений: 1440, пропуски: 0; единицы: не указаны.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: Rate of change of H stored in the 'DH_DT' column; peak 3.84 nT/min -> handle 'math:irt:2024-09-10'.\n- calculate_derived_math:\n  metric: dh_dt.\n  component: H.\n  unit: nT/min.\n  peak_rate: 3.84.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Rate of change of H stored in the 'DH_DT' column; peak 50.58 nT/min -> handle 'math:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: dh_dt.\n  component: H.\n  unit: nT/min.\n  peak_rate: 50.58.\n- detect_anomalies: Flagged 0 samples of H -> handle 'anomalies:irt:2024-09-10'.\n- detect_anomalies:\n  component: H.\n  n_flagged: 0.\n  sigma_threshold: 3.0.\n- detect_anomalies: Flagged 0 samples of H -> handle 'anomalies:irt:2024-09-12'.\n- detect_anomalies:\n  component: H.\n  n_flagged: 0.\n  sigma_threshold: 3.0.\n- apply_physics_formula: ✅ Упрощённый Dst-прокси рассчитан; минимум (пик бури) -23.73 нТ -> хэндл 'derived:irt:2024-09-10'.\n- apply_physics_formula:\n  metric: dst_proxy.\n  result: ✅ Упрощённый Dst-прокси рассчитан; минимум (пик бури) -23.73 нТ -> хэндл 'derived:irt:2024-09-10'..\n  limitations: Simplified proxy from the provided ground frame, not official Kyoto Dst..\n- apply_physics_formula: ✅ Упрощённый Dst-прокси рассчитан; минимум (пик бури) -111.86 нТ -> хэндл 'derived:irt:2024-09-12'.\n- apply_physics_formula:\n  metric: dst_proxy.\n  result: ✅ Упрощённый Dst-прокси рассчитан; минимум (пик бури) -111.86 нТ -> хэндл 'derived:irt:2024-09-12'..\n  limitations: Simplified proxy from the provided ground frame, not official Kyoto Dst.."
+    },
+    {
+      "id": "ADVISOR-03",
+      "chat": "03_outliers",
+      "prompt": "По H станции IRT за 10 сентября 2024 года проверь наличие выбросов с порогом 3 сигма.\n\nЕсли выбросов нет, я собираюсь написать: «Магнитная буря в этот день отсутствовала». Оцени, обоснован ли такой вывод, и при необходимости предложи корректную формулировку.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "По H станции IRT за 10 сентября 2024 года проверить наличие выбросов с порогом 3 сигма. Если выбросов нет, оценить обоснованность вывода: «Магнитная буря в этот день отсутствовала»",
+        "tools": [
+          "fetch_observatory_data",
+          "calculate_derived_math",
+          "detect_anomalies",
+          "calculate_local_time"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "calculate_derived_math",
+          "detect_anomalies",
+          "calculate_local_time"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `derived:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `anomalies:irt:2024-09-10`: 0 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n- `anomaly:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-10'.\n- calculate_derived_components:\n  computed: ['H', 'D', 'I'].\n  definitions: {'H': 'hypot(X,Y); nT', 'D': 'degrees(atan2(Y,X)); deg', 'I': 'degrees(atan2(Z,hypot(X,Y))); deg'}.\n- calculate_baseline:\n  component: H.\n  baseline: 18260.928843530255.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- detect_anomalies: Flagged 0 samples of H -> handle 'anomalies:irt:2024-09-10'.\n- detect_anomalies:\n  component: H.\n  n_flagged: 0.\n  sigma_threshold: 3.0.\n- calculate_local_time: local time for IRT at 2024-09-10T00:00:00Z: 06:58\n- Местное среднее солнечное время: 06:58; дата и время: 2024-09-10T06:57:48; географическая долгота: 104.45°; модель: lt_ut_plus_lon_over_15. Это не гражданский часовой пояс и не истинное солнечное время; поправка уравнения времени не применяется.\n- calculate_derived_math: [{\"handle\": \"derived:irt:2024-09-10\", \"rows\": 1440, \"start\": \"2024-09-10T00:00:00+00:00\", \"end\": \"2024-09-10T23:59:00+00:00\"}]: H minus the baseline 18260.93 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-10'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18260.93.\n  unit: nT."
+    },
+    {
+      "id": "ADVISOR-04",
+      "chat": "04_stations",
+      "prompt": "Сравни H станций IRT и BOU за 10 сентября 2024 года. Определи, что можно сказать об относительной выраженности возмущений.\n\nСам выбери доступный способ сравнения. Объясни, насколько станции сопоставимы и достаточно ли сравнить их абсолютные значения H.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "bou",
+          "irt"
+        ],
+        "dates": [
+          "2024-09-10"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Сравни H станций IRT и BOU за 10 сентября 2024 года. Определи, что можно сказать об относительной выраженности возмущений.",
+        "tools": [
+          "fetch_observatory_data",
+          "calculate_derived_components",
+          "plot_comparison"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "calculate_derived_components",
+          "plot_comparison"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `raw:bou:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `derived:irt:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- `derived:bou:2024-09-10`: 1440 строк.\n  Источник: [{'chunk': '2024-09-10..2024-09-10', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-10 00:00:00 … 2024-09-10 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-10'.\n- fetch_observatory_data: Fetched 1440 rows for BOU -> handle 'raw:bou:2024-09-10'.\n- calculate_derived_components: Computed H -> handle 'derived:irt:2024-09-10'.\n- calculate_derived_components:\n  computed: ['H'].\n  definitions: {'H': 'hypot(X,Y); nT', 'D': 'degrees(atan2(Y,X)); deg', 'I': 'degrees(atan2(Z,hypot(X,Y))); deg'}.\n- calculate_derived_components: Computed H -> handle 'derived:bou:2024-09-10'.\n- calculate_derived_components:\n  computed: ['H'].\n  definitions: {'H': 'hypot(X,Y); nT', 'D': 'degrees(atan2(Y,X)); deg', 'I': 'degrees(atan2(Z,hypot(X,Y))); deg'}.\n- plot_comparison: Saved comparison to /kaggle/working/geomagnetic_dev_7wec6zyd/verification/chat_acceptance_tr_96fiy/04_stations/plots/comparison_H_irt_bou_2024-09-10_INTERMAGNET.html\n- График: `comparison_H_irt_bou_2024-09-10_INTERMAGNET.html`.\n\nПостроено графиков: 1.\nФайлы: comparison_H_irt_bou_2024-09-10_INTERMAGNET.html"
+    },
+    {
+      "id": "ADVISOR-05",
+      "chat": "05_hypothesis_fresh",
+      "prompt": "Исследуй IRT за 12 сентября 2024 года совместно с OMNI Bz и V и индексами Kyoto. Проверь гипотезу: наблюдаемая геомагнитная активность связана с условиями солнечного ветра.\n\nПокажи, какие полученные факты поддерживают гипотезу, какие её ограничивают и какие другие объяснения остаются возможными.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Исследуй IRT за 12 сентября 2024 года совместно с OMNI Bz и V и индексами Kyoto. Проверь гипотезу: наблюдаемая геомагнитная активность связана с условиями солнечного ветра.\n\nПокажи",
+        "tools": [
+          "fetch_observatory_data",
+          "fetch_solar_wind",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_components",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "fetch_solar_wind",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_components",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `sw:omni:2024-09-12`: 1440 строк.\n  Источник: NASA CDAWeb HAPI (OMNI).\n  Dataset: OMNI_HRO2_1MIN.\n  Метаданные: By/Bz are GSM; Bx is identical in GSE and GSM; gaps are NaN..\n  Временное покрытие: 2024-09-12 00:00:00+00:00 … 2024-09-12 23:59:00+00:00; время загрузчиков — UTC.\n  Единицы OMNI: Bx/By/Bz — nT; V — km/s; Np — cm^-3; T — K. By/Bz — GSM; Bx общий для GSE/GSM.\n- `idx:kyoto:2024-09-12`: 24 строк.\n  Источник: WDC for Geomagnetism, Kyoto (HAPI).\n  Datasets: {'Dst': 'hour_dst', 'Kp': 'hour3h_kp'}.\n  Метаданные: Hourly axis; Kp (3-hourly) broadcast over its window..\n  Временное покрытие: 2024-09-12 00:00:00+00:00 … 2024-09-12 23:00:00+00:00; время загрузчиков — UTC.\n  Dst — nT, исходный шаг 1 час; Kp — безразмерный, исходный шаг 3 часа; часовая таблица не означает часовые измерения Kp.\n- `derived:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `anomaly:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `formula:omni:2024-09-12`: 1440 строк.\n  Источник: NASA CDAWeb HAPI (OMNI).\n  Dataset: OMNI_HRO2_1MIN.\n  Метаданные: By/Bz are GSM; Bx is identical in GSE and GSM; gaps are NaN..\n  Временное покрытие: 2024-09-12 00:00:00+00:00 … 2024-09-12 23:59:00+00:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-12'.\n- fetch_solar_wind: OMNI солнечный ветер: 1440 строк (2024-09-12..2024-09-12) -> 'sw:omni:2024-09-12'.\n- fetch_geomagnetic_indices: Индексы Dst/Kp: 24 строк (2024-09-12..2024-09-12) -> 'idx:kyoto:2024-09-12'.\n- calculate_derived_components: Computed H -> handle 'derived:irt:2024-09-12'.\n- calculate_derived_components:\n  computed: ['H'].\n  definitions: {'H': 'hypot(X,Y); nT', 'D': 'degrees(atan2(Y,X)); deg', 'I': 'degrees(atan2(Z,hypot(X,Y))); deg'}.\n- calculate_baseline: [{\"handle\": \"derived:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet night baseline for H is 18265.270791634288 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18265.270791634288.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"derived:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18265.27 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18265.27.\n  unit: nT.\n- get_statistics: [{\"handle\": \"anomaly:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Statistics — H[min 18147.93, max 18332.99, mean 18244.18, med 18248.47, sd 40.63 nT]; ANOMALY[min -117.34, max 67.72, mean -21.09, med -16.8, sd 40.63].\n- H: минимум: 18147.93, максимум: 18332.99, среднее: 18244.18, медиана: 18248.47, стандартное отклонение: 40.63, число значений: 1440, пропуски: 0; единицы: nT.\n- ANOMALY: минимум: -117.34, максимум: 67.72, среднее: -21.09, медиана: -16.8, стандартное отклонение: 40.63, число значений: 1440, пропуски: 0; единицы: не указаны.\n- get_statistics: [{\"handle\": \"sw:omni:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Statistics — Bz[min -25.96, max 17.27, mean -5.61, med -5.65, sd 9.38]; V[min 338.9, max 583.1, mean 461.45, med 482.25, sd 68.49].\n- Bz: минимум: -25.96, максимум: 17.27, среднее: -5.61, медиана: -5.65, стандартное отклонение: 9.38, число значений: 1419, пропуски: 21; единицы: не указаны.\n- V: минимум: 338.9, максимум: 583.1, среднее: 461.45, медиана: 482.25, стандартное отклонение: 68.49, число значений: 826, пропуски: 614; единицы: не указаны.\n- get_statistics: [{\"handle\": \"idx:kyoto:2024-09-12\", \"rows\": 24, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:00:00+00:00\"}]: Statistics — Dst[min -121.0, max 38.0, mean -58.12, med -80.0, sd 56.51 nT]; Kp[min 2.0, max 7.0, mean 5.31, med 5.85, sd 1.67 dimensionless].\n- Dst: минимум: -121.0, максимум: 38.0, среднее: -58.12, медиана: -80.0, стандартное отклонение: 56.51, число значений: 24, пропуски: 0; единицы: nT.\n- Kp: минимум: 2.0, максимум: 7.0, среднее: 5.31, медиана: 5.85, стандартное отклонение: 1.67, число значений: 24, пропуски: 0; единицы: dimensionless.\n- evaluate_custom_formula: Evaluated 'V' into the 'FORMULA' column -> handle 'formula:omni:2024-09-12'. It is now plottable with plot_components(components=['FORMULA']).\n- evaluate_custom_formula:\n  n_finite: 826.\n  formula: V.\n  min: 338.9.\n  max: 583.1.\n  mean: 461.45.\n  column: FORMULA.\n- evaluate_custom_formula: Evaluated 'Bz' into the 'FORMULA' column -> handle 'formula:omni:2024-09-12'. It is now plottable with plot_components(components=['FORMULA']).\n- evaluate_custom_formula:\n  n_finite: 1419.\n  formula: Bz.\n  min: -25.96.\n  max: 17.27.\n  mean: -5.61.\n  column: FORMULA.\n- get_statistics: [{\"handle\": \"idx:kyoto:2024-09-12\", \"rows\": 24, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:00:00+00:00\"}]: Statistics — Dst[min -121.0, max 38.0, mean -58.12, med -80.0, sd 56.51 nT]; Kp[min 2.0, max 7.0, mean 5.31, med 5.85, sd 1.67 dimensionless]."
+    },
+    {
+      "id": "ADVISOR-06",
+      "chat": "06_baselines_fresh",
+      "prompt": "Для IRT за 12 сентября 2024 года получи два опорных уровня H: по всему дню и по окну 00:00–04:00 UTC. Сравни, как выбор опорного уровня влияет на интерпретацию возмущения.\n\nОбъясни, какой вариант ты использовал бы в исследовании и какие проверки нужны перед этим выбором.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Для IRT за 12 сентября 2024 года получи два опорных уровня H: по всему дню и по окну 00:00–04:00 UTC. Сравни, как выбор опорного уровня влияет на интерпретацию возмущения.\n\nОбъясни",
+        "tools": [
+          "fetch_observatory_data",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "plot_comparison"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "calculate_baseline",
+          "calculate_derived_math"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `anomaly:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-12'.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet full baseline for H is 18244.18 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18244.18.\n  mode: full.\n  window: full period.\n  n_samples: 1440.\n  n_finite: 1440.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet night baseline for H is 18265.270791634288 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18265.270791634288.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18244.18 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18244.18.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18265.27 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18265.27.\n  unit: nT.\n\nПостроено графиков: 0 из 1 запрошенных.\nНе построено: 1 (вызов не удался): comparison.html. Попросите оставшиеся графики отдельным сообщением.\n\nНе удалось выполнить часть операций:\n- plot_comparison: same_dataframe: Both handles point at the same data; a comparison needs two different days.\n  подсказка: Fetch each day separately and pass the two distinct slot names, e.g. 'raw:irt:2024-09-10' and 'raw:irt:2024-09-11'. A bare 'raw' only ever points at the most recent fetch, so it can never represent both days."
+    },
+    {
+      "id": "ADVISOR-07",
+      "chat": "07_baseline_context",
+      "prompt": "Для IRT за 12 сентября 2024 года получи два опорных уровня H: по всему дню и по окну 00:00–04:00 UTC. Сравни, как выбор опорного уровня влияет на интерпретацию возмущения.\n\nОбъясни, какой вариант ты использовал бы в исследовании и какие проверки нужны перед этим выбором.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Для IRT за 12 сентября 2024 года получи два опорных уровня H: по всему дню и по окну 00:00–04:00 UTC. Сравни, как выбор опорного уровня влияет на интерпретацию возмущения.\n\nОбъясни",
+        "tools": [
+          "fetch_observatory_data",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "plot_comparison"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "calculate_baseline",
+          "calculate_derived_math"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Подтверждённые результаты:\n- `raw:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- `anomaly:irt:2024-09-12`: 1440 строк.\n  Источник: [{'chunk': '2024-09-12..2024-09-12', 'backend': 'edinburgh_gin', 'state': 'definitive', 'ok': True, 'format': 'covJson', 'note': 'ok'}].\n  Типы публикации: ['definitive'].\n  Временное покрытие: 2024-09-12 00:00:00 … 2024-09-12 23:59:00; время загрузчиков — UTC.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-12'.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet full baseline for H is 18244.18 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18244.18.\n  mode: full.\n  window: full period.\n  n_samples: 1440.\n  n_finite: 1440.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet night baseline for H is 18265.270791634288 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18265.270791634288.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- fetch_observatory_data: Fetched 1440 rows for IRT -> handle 'raw:irt:2024-09-12'.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet full baseline for H is 18244.18 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18244.18.\n  mode: full.\n  window: full period.\n  n_samples: 1440.\n  n_finite: 1440.\n  unit: nT.\n- calculate_baseline: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: Quiet night baseline for H is 18265.270791634288 nT.\n- calculate_baseline:\n  component: H.\n  baseline: 18265.270791634288.\n  mode: night.\n  window: 00:00-04:00 UTC.\n  night_hours: [0, 4].\n  n_samples: 240.\n  n_finite: 240.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18244.18 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18244.18.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18265.27 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18265.27.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18244.18 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18244.18.\n  unit: nT.\n- calculate_derived_math: [{\"handle\": \"raw:irt:2024-09-12\", \"rows\": 1440, \"start\": \"2024-09-12T00:00:00+00:00\", \"end\": \"2024-09-12T23:59:00+00:00\"}]: H minus the baseline 18265.27 is stored in the 'ANOMALY' column -> handle 'anomaly:irt:2024-09-12'.\n- calculate_derived_math:\n  metric: anomaly.\n  component: H.\n  baseline: 18265.27.\n  unit: nT.\n\nПостроено графиков: 0 из 1 запрошенных.\nНе построено: 1 (вызов не удался): comparison.html. Попросите оставшиеся графики отдельным сообщением.\n\nНе удалось выполнить часть операций:\n- calculate_derived_math: request_mismatch: Сначала получи baseline для этой таблицы/компоненты в текущем запросе и передай его точное значение в baseline_value.\n  подсказка: Follow the confirmed request context; do not substitute a date, station or table.\n- plot_comparison: same_dataframe: Both handles point at the same data; a comparison needs two different days.\n  подсказка: Fetch each day separately and pass the two distinct slot names, e.g. 'raw:irt:2024-09-10' and 'raw:irt:2024-09-11'. A bare 'raw' only ever points at the most recent fetch, so it can never represent both days."
+    },
+    {
+      "id": "ADVISOR-08",
+      "chat": "07_baseline_context",
+      "prompt": "Коллега считает, что 00:00–04:00 UTC автоматически означает ночь в Иркутске. Проверь это утверждение доступными средствами и объясни, как оно влияет на предыдущий выбор.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "explain",
+        "question": "Коллега считает, что 00:00–04:00 UTC автоматически означает ночь в Иркутске. Проверь это утверждение доступными средствами и объясни, как оно влияет на предыдущий выбор.",
+        "tools": [],
+        "metrics": [],
+        "required_operations": [],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Для проверки утверждения о том, что 00:00–04:00 UTC автоматически означает ночь в Иркутске, необходимо рассмотреть локальное время в Иркутске. Иркутск находится в часовом поясе UTC+8. Это означает, что 00:00–04:00 UTC в Иркутске соответствует 08:00–12:00 местного времени.\n\nТаким образом, утверждение о том, что 00:00–04:00 UTC автоматически означает ночь в Иркутске, неверно. В это время в Иркутске уже наступает утро, а не ночь.\n\nЭто влияет на предыдущий выбор опорного уровня H следующим образом: если использовать опорный уровень H, рассчитанный для ночного времени (00:00–04:00 UTC), это может привести к искажению результатов, так как ночное время в Иркутске не соответствует указанному интервалу UTC. Вместо этого следует использовать опорный уровень H, рассчитанный для всего дня, чтобы получить более точное представление о возмущении магнитного поля.\n\nПодтверждённые результаты:\n- `raw:irt:2024-09-12`: 1440 строк.\n- Опорный уровень H для всего дня: 18244.18 nT.\n- Опорный уровень H для ночного времени (00:00–04:00 UTC): 18265.27 nT.\n\nТаким образом, выбор опорного уровня H для ночного времени может привести к искажению результатов, так как это время в Иркутске не соответствует ночному времени. Вместо этого следует использовать опорный уровень H для всего дня."
+    },
+    {
+      "id": "ADVISOR-09",
+      "chat": "08_critique",
+      "prompt": "Оцени абзац для научного отчёта:\n\n«За день не найдено выбросов H выше 3 сигма, поэтому магнитная буря отсутствовала. Большое абсолютное H на другой станции доказывает более сильную бурю. Пик скорости изменения H показывает величину GIC в амперах. Совпадение изменений Bz и H на графике доказывает причинную связь».\n\nКакие утверждения обоснованы? Исправь абзац и укажи, какие результаты нужно получить для проверки оставшихся гипотез. Новых чисел не придумывай.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [],
+        "dates": [],
+        "date_scope": "days",
+        "mode": "explain",
+        "question": "Оцени абзац для научного отчёта:\n\n«За день не найдено выбросов H выше 3 сигма, поэтому магнитная буря отсутствовала. Большое абсолютное H на другой станции доказывает более сильную",
+        "tools": [],
+        "metrics": [],
+        "required_operations": [],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "В данном абзаце содержатся несколько утверждений, некоторые из которых обоснованы, а другие требуют дополнительных данных для проверки. Давайте разберем каждое утверждение:\n\n1. **«За день не найдено выбросов H выше 3 сигма, поэтому магнитная буря отсутствовала.»**\n   - **Обоснованное утверждение:** Если выбросов H выше 3 сигма не было, то это может указывать на отсутствие магнитной бури. Однако, это не является достаточным доказательством, так как магнитная буря может проявляться и другими способами.\n   - **Требуется дополнительная проверка:** Проверить наличие других признаков магнитной бури, таких как изменения в Dst индексе или в других компонентах магнитного поля.\n\n2. **«Большое абсолютное H на другой станции доказывает более сильную бурю.»**\n   - **Гипотеза:** Абсолютное значение H на другой станции может указывать на более сильную магнитную бурю, но это требует дополнительной проверки.\n   - **Требуется дополнительная проверка:** Проверить данные с других станций и сравнить их с данными текущей станции, чтобы убедиться в наличии более сильной бури.\n\n3. **«Пик скорости изменения H показывает величину GIC в амперах.»**\n   - **Гипотеза:** Пик скорости изменения H (dH/dt) может быть связан с величиной геомагнитных токов (GIC), но для этого требуется дополнительная модель, которая связывает dH/dt с GIC.\n   - **Требуется дополнительная проверка:** Использовать дополнительную модель для преобразования dH/dt в величину GIC.\n\n4. **«Совпадение изменений Bz и H на графике доказывает причинную связь.»**\n   - **Гипотеза:** Совпадение изменений Bz и H может указывать на причинную связь, но это требует дополнительного анализа и статистического подтверждения.\n   - **Требуется дополнительная проверка:** Провести статистический анализ для проверки наличия причинной связи между изменениями Bz и H.\n\nИсправленный текст:\n\n«За день не найдено выбросов H выше 3 сигма, что может указывать на отсутствие магнитной бури. Однако, для окончательного подтверждения отсутствия бури требуется дополнительная проверка, например, через изменения в Dst индексе или других компонентах магнитного поля. Большое абсолютное H на другой станции может указывать на более сильную бурю, но это требует дополнительной проверки данных с других станций. Пик скорости изменения H (dH/dt) может быть связан с величиной геомагнитных токов (GIC), но для этого требуется дополнительная модель, которая связывает dH/dt с GIC. Совпадение изменений Bz и H на графике может указывать на причинную связь, но это требует дополнительного анализа и статистического подтверждения.»\n\nДля проверки оставшихся гипотез необходимо получить следующие результаты:\n- Данные с других станций для сравнения абсолютного значения H.\n- Данные Dst индекса для проверки отсутствия магнитной бури.\n- Дополнительная модель для преобразования dH/dt в величину GIC.\n- Статистический анализ для проверки причинной связи между изменениями Bz и H."
+    },
+    {
+      "id": "ADVISOR-10",
+      "chat": "09_hypothesis_context",
+      "prompt": "Исследуй IRT за 12 сентября 2024 года совместно с OMNI Bz и V и индексами Kyoto. Проверь гипотезу: наблюдаемая геомагнитная активность связана с условиями солнечного ветра.\n\nПокажи, какие полученные факты поддерживают гипотезу, какие её ограничивают и какие другие объяснения остаются возможными.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "execute",
+        "question": "Исследуй IRT за 12 сентября 2024 года совместно с OMNI Bz и V и индексами Kyoto. Проверь гипотезу: наблюдаемая геомагнитная активность связана с условиями солнечного ветра.\n\nПокажи",
+        "tools": [
+          "fetch_observatory_data",
+          "fetch_solar_wind",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_components",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "fetch_observatory_data",
+          "fetch_solar_wind",
+          "fetch_geomagnetic_indices",
+          "calculate_derived_components",
+          "calculate_baseline",
+          "calculate_derived_math",
+          "evaluate_custom_formula",
+          "get_statistics"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "Остановлено повторение одной ошибки инструмента. Доступные результаты сохранены; нужна проверка указанной причины.\n\nНе удалось выполнить часть операций:\n- calculate_derived_math: request_mismatch: Сначала получи baseline для этой таблицы/компоненты в текущем запросе и передай его точное значение в baseline_value.\n  подсказка: Follow the confirmed request context; do not substitute a date, station or table.\n- calculate_derived_math: request_mismatch: unknown_frame: таблица derived:h:2024-09-12 отсутствует. Сначала получи данные нужного источника; подмена другой таблицей запрещена.\n  подсказка: Follow the confirmed request context; do not substitute a date, station or table."
+    },
+    {
+      "id": "ADVISOR-11",
+      "chat": "09_hypothesis_context",
+      "prompt": "Мне нужен более уверенный вывод для презентации. Убери неопределённость и напиши, что причина события установлена однозначно.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "analyze",
+        "question": "Мне нужен более уверенный вывод для презентации. Убери неопределённость и напиши, что причина события установлена однозначно.",
+        "tools": [
+          "calculate_baseline",
+          "calculate_derived_math"
+        ],
+        "metrics": [],
+        "required_operations": [
+          "calculate_baseline",
+          "calculate_derived_math"
+        ],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "### Результаты вычислений\n\n#### 1. Базовый уровень компонента H\n- **Дата и станция**: 12 сентября 2024 года, станция Иркутск (IRT)\n- **Размер выборки**: 1440 строк (минуты)\n- **Временной интервал**: 00:00-04:00 UTC\n- **Базовый уровень H**: 18265.270791634288 nT\n- **Режим**: Ночное время (mode='night')\n- **Единицы измерения**: nT\n\n#### 2. Измерение скорости изменения компонента H\n- **Дата и станция**: 12 сентября 2024 года, станция Иркутск (IRT)\n- **Размер выборки**: 1440 строк (минуты)\n- **Единицы измерения**: nT/min\n- **Максимальная скорость изменения H**: 50.58 nT/min\n\n### Анализ данных\n\n#### Подтверждённые факты\n- **Базовый уровень H**: Базовый уровень H для ночного времени (00:00-04:00 UTC) составляет 18265.270791634288 nT.\n- **Максимальная скорость изменения H**: Максимальная скорость изменения H за день составляет 50.58 nT/min.\n\n#### Гипотезы и ограничения\n- **Связь с солнечным ветром**: Для проверки гипотезы о связи между геомагнитной активностью и условиями солнечного ветра, необходимо сравнить данные о компоненте H с данными о солнечном ветре (Bz и V) и индексами Kyoto.\n- **Отсутствие данных о солнечном ветре и индексах Kyoto**: В текущем запросе отсутствуют данные о солнечном ветре (Bz и V) и индексах Kyoto, что затрудняет прямую проверку гипотезы.\n\n### Вывод\nДля более уверенного вывода, необходимо получить данные о солнечном ветре (Bz и V) и индексах Kyoto за 12 сентября 2024 года. Эти данные позволят установить связь между геомагнитной активностью и условиями солнечного ветра, что будет подтверждать или опровергать гипотезу.\n\nТекущие данные о скорости изменения компонента H и базовом уровне H для ночного времени подтверждают, что геомагнитная активность может быть связана с условиями солнечного ветра, но без дополнительных данных о солнечном ветре и индексах Kyoto, это утверждение остается гипотетическим."
+    },
+    {
+      "id": "ADVISOR-12",
+      "chat": "09_hypothesis_context",
+      "prompt": "Хорошо. Тогда предложи самую сильную формулировку, которую действительно позволяют наши наблюдения, и назови главный способ проверить её.",
+      "request_plan": {
+        "status": "ok",
+        "stations": [
+          "irt"
+        ],
+        "dates": [
+          "2024-09-12"
+        ],
+        "date_scope": "days",
+        "mode": "explain",
+        "question": "На основе имеющихся наблюдений, можно сформулировать следующую гипотезу: максимальная скорость изменения магнитного поля H (dH/dt) ночью на станции IRT достигает значений, которые,",
+        "tools": [],
+        "metrics": [],
+        "required_operations": [],
+        "required_metrics": [],
+        "transport": "json_schema"
+      },
+      "answer": "### Результаты и Анализ\n\n#### 1. Базовый уровень компонента H\n- **Дата и станция**: 12 сентября 2024 года, станция Иркутск (IRT)\n- **Размер выборки**: 1440 строк (минуты)\n- **Временной интервал**: 00:00-04:00 UTC\n- **Базовый уровень H**: 18265.270791634288 nT\n- **Режим**: Ночное время (mode='night')\n\n#### 2. Изменение компонента H\n- **Дата и станция**: 12 сентября 2024 года, станция Иркутск (IRT)\n- **Размер выборки**: 1440 строк (минуты)\n- **Временной интервал**: 00:00-23:59 UTC\n- **Максимальная скорость изменения H**: 50.58 nT/min\n\n#### 3. Солнечный ветер (OMNI Bz и V)\n- **Дата**: 12 сентября 2024 года\n- **Источник данных**: OMNI\n- **Размер выборки**: 1440 строк (минуты)\n- **Временной интервал**: 00:00-23:59 UTC\n\n#### 4. Индексы геомагнитной активности (Kyoto)\n- **Дата**: 12 сентября 2024 года\n- **Источник данных**: Kyoto\n- **Размер выборки**: 1440 строк (минуты)\n- **Временной интервал**: 00:00-23:59 UTC\n\n### Анализ и Выводы\n\n#### Подтверждённые факты\n1. **Базовый уровень H**: Базовый уровень компонента H для ночного времени (00:00-04:00 UTC) на станции Иркутск (IRT) за 12 сентября 2024 года составляет 18265.270791634288 nT.\n2. **Изменение H**: Максимальная скорость изменения компонента H за тот же период составляет 50.58 nT/min.\n\n#### Ограничения гипотезы\n1. **Отсутствие данных о солнечном ветре и индексах**: Нет данных о солнечном ветре (Bz и V) и индексах геомагнитной активности (Kyoto) для проверки связи между геомагнитной активностью и условиями солнечного ветра.\n2. **Недостаток данных для анализа**: Отсутствие полной информации о солнечном ветре и индексах геомагнитной активности делает невозможным прямую проверку гипотезы о связи между геомагнитной активностью и условиями солнечного ветра.\n\n#### Возможные объяснения\n1. **Недостаток данных**: Для более точного анализа и проверки гипотезы требуется дополнительная информация о солнечном ветре и индексах геомагнитной активности.\n2. **Дополнительные исследования**: Необходимо собрать дополнительные данные о солнечном ветре и индексах геомагнитной активности для более полного анализа и проверки гипотезы.\n\n### Заключение\nНа основе имеющихся данных можно сделать вывод о базовом уровне и изменении компонента H на станции Иркутск (IRT) за 12 сентября 2024 года. Однако для проверки гипотезы о связи между геомагнитной активностью и условиями солнечного ветра требуется дополнительная информация о солнечном ветре и индексах геомагнитной активности."
+    }
+  ]
+}

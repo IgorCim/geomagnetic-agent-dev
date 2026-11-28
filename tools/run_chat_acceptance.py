@@ -163,7 +163,7 @@ def _environment(phase_dir, ga, ac, ps):
 def _record_results(ga, ac, records):
     """Forward calls unchanged and retain structured results for the evidence."""
     originals = []
-    fields = ('ok', 'error', 'stop_reason', 'text', 'tool_calls', 'plots', 'matrix_path', 'coverage', 'missing_cells', 'archive', 'rounds', 'request_plan')
+    fields = ('ok', 'error', 'stop_reason', 'text', 'tool_calls', 'plots', 'matrix_path', 'coverage', 'missing_cells', 'archive', 'rounds', 'request_plan', 'response_review', 'draft_text')
     try:
         for obj, name in [(ga, 'run_agent'), (ga, 'run_agent_with_planner'), (ac, 'run_bound_statistics')]:
             original = getattr(obj, name)

@@ -1,0 +1,17 @@
+{
+  "unchanged_from_5e46603": {
+    "SYSTEM_PROMPT": true,
+    "TOOL_SCHEMAS": true,
+    "LlamaBrain": true,
+    "TEMPERATURE": true,
+    "MAX_TOKENS": true,
+    "physics_engine.py": true,
+    "geomag_math.py": true,
+    "geomag_analyzer.py": true,
+    "geomag_plotter.py": true,
+    "project_store.py": true,
+    "agent_planner.py": true
+  },
+  "protected_original_files_checked": 216,
+  "protected_original_changes": []
+}

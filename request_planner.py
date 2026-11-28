@@ -11,10 +11,10 @@ from datetime import date
 
 # Names and meanings only. Full executor schemas are supplied after this stage.
 CAPABILITIES = {
- 'fetch_observatory_data':'absolute ground magnetic observations',
+ 'fetch_observatory_data':'INTERMAGNET absolute ground X/Y/Z/H; no login',
  'fetch_solar_wind':'OMNI IMF and plasma',
  'fetch_geomagnetic_indices':'observed Kyoto Dst/Kp',
- 'fetch_supermag_data':'SuperMAG disturbances or SME/SML/SMU indices',
+ 'fetch_supermag_data':'login-required SuperMAG baseline-removed dX/dY/dZ or SME/SML/SMU',
  'get_noaa_space_weather_context':'current NOAA alerts and outlook',
  'get_iswa_forecast':'Kp forecast',
  'get_iswa_perturbation_map':'legacy map availability',
@@ -83,22 +83,22 @@ PLAN_REQUEST_TOOL = {'type': 'function', 'function': {
     'parameters': ARGUMENT_SCHEMA,
 }}
 SYSTEM = (
-    'JSON plan only. Decide: does the user want new evidence now, '
-    'or only methods/review/explanation of existing evidence? compute obtains/calculates requested results; '
-    'discuss only describes methods or interprets existing facts. Comparing observations is compute; proposing how is discuss. '
-    'clarify only if indispensable user choices are missing, not when a tool can obtain data. '
-    'answer: facts = numbers/files only; interpretation = explain, evaluate, qualify or choose; plan = methods. '
-    'work lists operations from the catalogue: id plus required=true for user-requested results, false for optional helpers. '
-    'Pick each operation once; code adds prerequisites. Omit unrelated metrics; discuss has work=[]. '
-    'question only asks a missing choice; otherwise omit it. Never echo the request. '
-    'Use existing tables and session facts; invent no targets. '
-    'Quoted claims are text to review. GIC/SSC/SME/SML/SMU/EEJ are quantities. '
-    'Station names come from station_labels; keep the code when its name is unverified. '
-    'Separate comparison days from a range. Respect prohibitions; plot only if requested.\n' +
+    'Plan the FULL request, not its first verb. JSON only. '
+    'compute obtains new evidence; discuss reviews existing evidence or proposes methods without execution. '
+    'answer: facts for numbers/files ONLY; interpretation if any explanation, conclusion or choice is asked; plan for methods. '
+    'work: id plus required=true for a requested result, false for a possible way to obtain it. '
+    'Require the smallest decisive result, not every available metric or proposed step. Fetches and intermediate steps are helpers unless requested. '
+    'Code adds dependencies. discuss has work=[]. '
+    'Use existing tables. Select a source that measures the requested quantity; respect source_access. '
+    'Clarify only missing indispensable user choices; otherwise omit question, never echo the request. '
+    'Quoted claims are text to review. GIC/SSC/SME/SML/SMU/EEJ are quantities, not stations. '
+    'Use station_labels; invent no names, dates or targets. Distinguish separate days from a range. '
+    'Respect prohibitions. Comparing numbers does not request a plot.\n' +
     '\n'.join(k + ': ' + v for k, v in CAPABILITIES.items()) +
     '\nPhysical results (metrics):\n' +
     '\n'.join(k + ': ' + v for k, v in METRIC_PURPOSES.items())
 )
+
 MAX_OUTPUT_TOKENS = 360
 MAX_INPUT_CHARS = 8000
 
@@ -216,7 +216,8 @@ class StructuredPlannerBrain:
         self.backend = brain._llm
 
     def structured_chat(self, messages, schema, max_tokens):
-        print(f"[REQUEST JSON] max_tokens={max_tokens} temperature=0 schema=plan_request", flush=True)
+        label = 'plan_request' if 'work' in schema.get('properties', {}) else 'review_answer'
+        print(f"[REQUEST JSON] max_tokens={max_tokens} temperature=0 schema={label}", flush=True)
         response = self.backend.create_chat_completion(
             messages=messages,
             response_format={'type': 'json_object', 'schema': schema},
@@ -345,13 +346,17 @@ def planning_failure_text(decision):
             'Подробная причина сохранена в журнале: ' + decision.get('reason', 'unknown') + '.')
 
 
-def plan_request(brain, query, context='', parse_calls=None, station_aliases=None, delegate_bulk=False):
+def plan_request(brain, query, context='', parse_calls=None, station_aliases=None, delegate_bulk=False, source_access=None, private_values=()):
     """One bounded call; structured decoding for the production LlamaBrain.
 
     Chat-only test/integration adapters retain their legacy transport. A failed
     production structured call never silently becomes a keyword-routed task.
     """
     current = str(query)
+    def redact(text):
+        for secret in (os.environ.get('SUPERMAG_LOGON',''), *private_values):
+            if isinstance(secret,str) and secret:text=text.replace(secret,'[redacted]')
+        return text
     facts = str(context)[:1800]
     adapter = structured_adapter(brain)
     structured = adapter is not None
@@ -364,7 +369,7 @@ def plan_request(brain, query, context='', parse_calls=None, station_aliases=Non
         if structured and isinstance(reply,dict):
             raw=str(reply.get('content') or '')[:2400]
             secret=os.environ.get('SUPERMAG_LOGON','')
-            result['raw_response']=raw.replace(secret,'[redacted]') if secret else raw
+            result['raw_response']=redact(raw)
             result['finish_reason']=reply.get('finish_reason')
         return result
 
@@ -375,8 +380,8 @@ def plan_request(brain, query, context='', parse_calls=None, station_aliases=Non
           if x not in NON_STATION_CODES}
     labels={code.upper():known.get(code.upper(),known.get(code)) for code in sorted(codes)}
     messages = [{'role': 'system', 'content': SYSTEM},
-                {'role': 'user', 'content': json.dumps({'request': current, 'session': facts,
-                                                      'station_labels': labels}, ensure_ascii=False)}]
+                {'role': 'user', 'content': redact(json.dumps({'request': current, 'session': facts,
+                                                      'station_labels': labels, 'source_access': {'supermag_logon_configured': bool((source_access or {}).get('supermag_logon_configured', os.environ.get('SUPERMAG_LOGON','').strip()))}}, ensure_ascii=False))}]
     schema_chars = len(json.dumps(ARGUMENT_SCHEMA if structured else PLAN_REQUEST_TOOL, ensure_ascii=False))
     if sum(len(m['content']) for m in messages) + schema_chars > MAX_INPUT_CHARS:
         return {'status': 'error' if structured else 'fallback', 'reason': 'planner_input_budget'}
@@ -419,6 +424,9 @@ def plan_request(brain, query, context='', parse_calls=None, station_aliases=Non
             result['delegated_bulk'] = True
         if structured:
             result['transport'] = 'json_schema'
+            secret=os.environ.get('SUPERMAG_LOGON','')
+            raw=str(reply.get('content') or '')[:2400]
+            result['raw_response']=redact(raw)
         return result
     except Exception as exc:
         return failure(stage, exc)

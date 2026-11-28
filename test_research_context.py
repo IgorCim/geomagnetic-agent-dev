@@ -10,7 +10,7 @@ import project_store as ps
 import request_planner as rp
 import research_context as rc
 from chat_session import SessionMemory, capture_calculation
-from test_structured_request_planner import Backend, wire
+from test_structured_request_planner import Backend, wire, review_reply
 from test_request_planner import native
 
 
@@ -31,14 +31,14 @@ def test_optional_metrics_do_not_block_a_real_outlier_result(tmp_path):
     intent=wire('compute','interpretation',['detect_anomalies'],['sq_baseline','gic'],['IRT'],['2024-09-12'])
     intent['work']=[{**item,'required':item['id']=='detect_anomalies'} for item in intent['work']]
     backend=Backend(intent,reply('detect_anomalies',dict(df_descriptor=h,component='H',sigma_threshold=3)),
-                    {'choices':[{'message':{'content':'Порог проверен. Отсутствие выбросов само по себе не исключает бурю.'}}]})
+                    {'choices':[{'message':{'content':'Порог проверен. Отсутствие выбросов само по себе не исключает бурю.'}}]}, review_reply('Порог проверен. Отсутствие выбросов само по себе не исключает бурю.'))
     result=ac.run_agent('Проверь выбросы H IRT за 12 сентября 2024 года при 3 сигма и объясни пределы вывода.',
                         brain=ac.LlamaBrain(backend),store=store,verbose=False)
     assert result['ok'],result
     assert [x['tool'] for x in result['tool_calls']]==['detect_anomalies']
     assert result['tool_calls'][0]['calculation']['n_flagged']==0
     assert 'apply_physics_formula' in {x['function']['name'] for x in backend.calls[1]['tools']}
-    evidence=backend.calls[-1]['messages'][0]['content']
+    evidence=backend.calls[-2]['messages'][0]['content']
     assert 'n_flagged' in evidence and 'does not establish storm absence' in evidence
     assert result['request_plan']['required_metrics']==[]
 
@@ -138,10 +138,10 @@ def test_discussion_continuation_receives_recorded_values_without_new_calculatio
     capture_calculation(entry,entry['tool'],payload)
     store.conversation.record([entry],store)
     backend=Backend(wire('discuss','interpretation'),
-                    {'choices':[{'message':{'content':'Среднее H=6.75 nT относится к этой таблице; причинная связь не проверялась.'}}]})
+                    {'choices':[{'message':{'content':'Среднее H=6.75 nT относится к этой таблице; причинная связь не проверялась.'}}]}, review_reply('Среднее H=6.75 nT относится к этой таблице; причинная связь не проверялась.'))
     result=ac.run_agent('Сформулируй вывод только по уже полученным наблюдениям.',brain=ac.LlamaBrain(backend),store=store,verbose=False)
     assert result['ok'] and result['tool_calls']==[]
-    prompt=backend.calls[-1]['messages'][0]['content']
+    prompt=backend.calls[-2]['messages'][0]['content']
     assert h in prompt and '6.75' in prompt and 'full' in prompt
     assert 'Claim a computed correlation only' in prompt
     assert '6.75' in backend.calls[0]['messages'][1]['content']
