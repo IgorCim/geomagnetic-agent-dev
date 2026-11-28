@@ -53,5 +53,6 @@
   "sources": [
     "../dual_review_5e46603_20261128.txt",
     "../../../tests/fixtures/dual_stage_5e46603.json"
-  ]
+  ],
+  "historical_transcript_sha256": "43a2724ce1fd8644eba380d63142633ea08a5b9eeec6ef649ca822e8c6b9f166"
 }
